@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Environment variables — NEVER commit secrets
+.env
+*.env
+config.py
+
+# Flask
+instance/
+.webassets-cache
+flask_session/
+
+# Database files (SQLite leftovers)
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
