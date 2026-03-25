@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — ShopSphere Secure{% endblock %}
+
+{% block extra_style %}
+.adash-wrap { padding: 2rem 5vw 4rem; }
+
+/* KPI row */
+.kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem; }
+.kpi {
+  background:var(--ink2);border:1px solid var(--border);border-radius:16px;
+  padding:1.4rem;display:flex;flex-direction:column;gap:0.4rem;
+  transition:border-color 0.2s,transform 0.2s;
+}
+.kpi:hover { border-color:rgba(200,255,0,0.2);transform:translateY(-2px); }
+.kpi-icon { width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:0.25rem; }
+.kpi-val  { font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.03em; }
+.kpi-label{ font-size:0.72rem;color:var(--muted2);font-weight:500;text-transform:uppercase;letter-spacing:0.06em; }
+.kpi-sub  { font-size:0.72rem;color:var(--muted);margin-top:0.1rem; }
+.kpi-trend{ font-size:0.75rem;font-weight:700;margin-top:0.1rem; }
+.trend-up   { color:#4ADE80; } .trend-down { color:#FF8FA3; }
+
+/* Chart cards */
+.charts-row { display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem; }
+.chart-card {
+  background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:1.4rem;
+}
+.chart-card.full { grid-column:1/-1; }
+.chart-title {
+  font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.06em;color:var(--muted2);
+  margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem;
+}
+.chart-title i { color:var(--lime); }
+canvas { display:block;width:100% !important; }
+
+/* Top products table */
+.top-table { width:100%;border-collapse:collapse;font-size:0.83rem; }
+.top-table th { font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:0 0 0.6rem;border-bottom:1px solid var(--border);text-align:left; }
+.top-table th:last-child,.top-table td:last-child { text-align:right; }
+.top-table td { padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle; }
+.top-table tr:last-child td { border-bottom:none; }
+.rank-badge { display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;font-size:0.7rem;font-weight:800;margin-right:0.5rem; }
+.rank-1 { background:rgba(200,255,0,0.15);color:var(--lime); }
+.rank-2 { background:rgba(255,255,255,0.08);color:var(--muted2); }
+.rank-3 { background:rgba(255,190,0,0.12);color:#FFD166; }
+.rank-n { background:var(--ink3);color:var(--muted); }
+
+/* Mini recent orders */
+.recent-row { display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.04); }
+.recent-row:last-child { border-bottom:none; }
+.ro-id   { font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:700;min-width:65px; }
+.ro-user { font-size:0.8rem;color:var(--muted2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.ro-amt  { font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;color:var(--lime);flex-shrink:0; }
+.ro-badge { padding:0.15rem 0.5rem;border-radius:100px;font-size:0.62rem;font-weight:700;text-transform:uppercase;flex-shrink:0; }
+.rob-placed     { background:rgba(0,194,255,0.1);color:#67D7FF; }
+.rob-processing { background:rgba(255,190,0,0.1);color:#FFD166; }
+.rob-shipped    { background:rgba(123,47,255,0.1);color:#A97BFF; }
+.rob-delivered  { background:rgba(40,202,65,0.1);color:#4ADE80; }
+.rob-cancelled  { background:rgba(255,77,109,0.1);color:#FF8FA3; }
+
+@media(max-width:900px){ .charts-row{grid-template-columns:1fr;} .kpi-grid{grid-template-columns:1fr 1fr;} }
+@media(max-width:480px){ .kpi-grid{grid-template-columns:1fr 1fr;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-speedometer2"></i> Admin</div>
+    <h1>Sales Dashboard</h1>
+  </div>
+  <div style="display:flex;gap:0.5rem;">
+    <a href="{{ url_for('admin_products') }}" class="btn btn-ghost"><i class="bi bi-box-seam"></i> Products</a>
+    <a href="{{ url_for('admin_unlock_accounts') }}" class="btn btn-ghost"><i class="bi bi-shield-check"></i> Accounts</a>
+  </div>
+</div>
+
+<div class="adash-wrap">
+
+  {# ── KPI Cards ── #}
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(200,255,0,0.1);color:var(--lime);"><i class="bi bi-currency-rupee"></i></div>
+      <span class="kpi-val" style="color:var(--lime);">₹{{ "%.0f"|format(total_revenue) }}</span>
+      <span class="kpi-label">Total Revenue</span>
+      <span class="kpi-sub">All time</span>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(0,194,255,0.1);color:#00C2FF;"><i class="bi bi-bag-check"></i></div>
+      <span class="kpi-val">{{ total_orders }}</span>
+      <span class="kpi-label">Total Orders</span>
+      <span class="kpi-sub">{{ delivered_count }} delivered</span>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(123,47,255,0.1);color:#A97BFF;"><i class="bi bi-people"></i></div>
+      <span class="kpi-val">{{ total_customers }}</span>
+      <span class="kpi-label">Customers</span>
+      <span class="kpi-sub">Registered users</span>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon" style="background:rgba(255,190,0,0.1);color:#FFD166;"><i class="bi bi-box-seam"></i></div>
+      <span class="kpi-val">{{ total_products }}</span>
+      <span class="kpi-label">Products</span>
+      <span class="kpi-sub">{{ low_stock_count }} low stock</span>
+    </div>
+  </div>
+
+  {# ── Charts row ── #}
+  <div class="charts-row">
+
+    {# Revenue by day (line chart) #}
+    <div class="chart-card">
+      <div class="chart-title"><i class="bi bi-graph-up"></i> Revenue — Last 14 Days</div>
+      <canvas id="revenueChart" height="200"></canvas>
+    </div>
+
+    {# Orders by status (doughnut) #}
+    <div class="chart-card">
+      <div class="chart-title"><i class="bi bi-pie-chart"></i> Orders by Status</div>
+      <canvas id="statusChart" height="200"></canvas>
+    </div>
+
+    {# Top selling products bar chart #}
+    <div class="chart-card full">
+      <div class="chart-title"><i class="bi bi-bar-chart"></i> Top 8 Products by Revenue</div>
+      <canvas id="productChart" height="120"></canvas>
+    </div>
+  </div>
+
+  {# ── Bottom row: top products table + recent orders ── #}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+
+    <div class="chart-card">
+      <div class="chart-title"><i class="bi bi-trophy"></i> Top Products by Units Sold</div>
+      <table class="top-table">
+        <thead><tr><th>#</th><th>Product</th><th>Units</th><th>Revenue</th></tr></thead>
+        <tbody>
+          {% for p in top_products %}
+          <tr>
+            <td>
+              <span class="rank-badge {{ 'rank-1' if loop.index==1 else ('rank-2' if loop.index==2 else ('rank-3' if loop.index==3 else 'rank-n')) }}">
+                {{ loop.index }}
+              </span>
+            </td>
+            <td style="font-weight:600;">{{ p.name }}</td>
+            <td style="color:var(--muted2);">{{ p.units_sold }}</td>
+            <td style="color:var(--lime);font-family:'Syne',sans-serif;font-weight:700;">₹{{ "%.0f"|format(p.revenue) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title"><i class="bi bi-clock-history"></i> Recent Orders</div>
+      {% for o in recent_orders %}
+        {% set s = o.status|lower %}
+        <div class="recent-row">
+          <span class="ro-id">#{{ o.order_id }}</span>
+          <span class="ro-user"><i class="bi bi-person" style="opacity:0.5"></i> {{ o.username }}</span>
+          <span class="ro-badge rob-{{ s.split()[0] }}">{{ o.status }}</span>
+          <span class="ro-amt">₹{{ "%.0f"|format(o.total_amount) }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  {# ── All Users table ── #}
+  <div style="margin-top:1rem;">
+    <div class="chart-card" style="padding:1.4rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
+        <div class="chart-title" style="margin-bottom:0;"><i class="bi bi-people"></i> All Users</div>
+        <div style="position:relative;">
+          <i class="bi bi-search" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.8rem;pointer-events:none;"></i>
+          <input id="userSearch" type="text" placeholder="Search users…" oninput="filterUsers(this.value)"
+            style="padding:0.4rem 0.85rem 0.4rem 2rem;background:var(--ink3);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;outline:none;width:200px;transition:border-color 0.2s;"
+            onfocus="this.style.borderColor='rgba(200,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.07)'"/>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="styled" id="usersTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Orders</th>
+              <th>Total Spent</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in all_users %}
+            {% set is_locked = u.locked_until is not none %}
+            <tr data-name="{{ u.username|lower }}" data-role="{{ u.role }}">
+              <td style="color:var(--muted2);font-size:0.78rem;">#{{ u.user_id }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <div style="width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;
+                    background:{{ 'rgba(255,77,109,0.15)' if u.role=='admin' else 'rgba(0,194,255,0.1)' }};
+                    color:{{ '#FF8FA3' if u.role=='admin' else '#67D7FF' }};">
+                    {{ u.username[0]|upper }}
+                  </div>
+                  <span style="font-weight:600;">{{ u.username }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge {{ 'badge-admin' if u.role=='admin' else 'badge-customer' }}">{{ u.role }}</span>
+              </td>
+              <td style="color:var(--muted2);">{{ u.order_count }}</td>
+              <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);">
+                {% if u.total_spent > 0 %}₹{{ "%.0f"|format(u.total_spent) }}{% else %}<span style="color:var(--muted);">—</span>{% endif %}
+              </td>
+              <td>
+                {% if is_locked %}
+                  <span class="badge badge-cancelled"><i class="bi bi-lock-fill"></i> Locked</span>
+                {% else %}
+                  <span class="badge badge-delivered"><i class="bi bi-check-lg"></i> Active</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if is_locked %}
+                  <form method="POST" action="{{ url_for('admin_unlock_user', user_id=u.user_id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-elec"><i class="bi bi-unlock"></i> Unlock</button>
+                  </form>
+                {% else %}
+                  <span style="color:var(--muted);font-size:0.78rem;">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div id="noUserResults" style="display:none;text-align:center;padding:2rem;color:var(--muted2);">
+        <i class="bi bi-search" style="opacity:0.3;display:block;font-size:1.5rem;margin-bottom:0.5rem;"></i>
+        No users match your search.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  Chart.defaults.color = '#9898B8';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+  /* ── 1. Revenue line chart ── */
+  const revDays   = {{ revenue_by_day | map(attribute='day') | list | tojson }};
+  const revAmts   = {{ revenue_by_day | map(attribute='revenue') | list | tojson }};
+
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+      labels: revDays,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: revAmts,
+        borderColor: '#C8FF00',
+        backgroundColor: 'rgba(200,255,0,0.08)',
+        pointBackgroundColor: '#C8FF00',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: true,
+        tension: 0.4,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { maxTicksLimit: 7 } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '₹' + v } }
+      }
+    }
+  });
+
+  /* ── 2. Status doughnut ── */
+  const statusLabels = {{ status_counts | map(attribute='status') | list | tojson }};
+  const statusCounts = {{ status_counts | map(attribute='cnt') | list | tojson }};
+  const statusColors = statusLabels.map(s => {
+    const m = { placed:'#67D7FF', processing:'#FFD166', shipped:'#A97BFF', delivered:'#4ADE80', cancelled:'#FF8FA3' };
+    return m[s.toLowerCase().split(' ')[0]] || '#6B6B8A';
+  });
+
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: statusLabels,
+      datasets: [{ data: statusCounts, backgroundColor: statusColors, borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true,
+      cutout: '68%',
+      plugins: {
+        legend: { position: 'right', labels: { padding: 14, usePointStyle: true, pointStyleWidth: 8 } }
+      }
+    }
+  });
+
+  /* ── 3. Top products bar chart ── */
+  const prodNames = {{ top_products | map(attribute='name') | list | tojson }};
+  const prodRevs  = {{ top_products | map(attribute='revenue') | list | tojson }};
+
+  new Chart(document.getElementById('productChart'), {
+    type: 'bar',
+    data: {
+      labels: prodNames,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: prodRevs,
+        backgroundColor: 'rgba(200,255,0,0.75)',
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '₹' + v } }
+      }
+    }
+  });
+
+  /* ── User search filter ── */
+  function filterUsers(q) {
+    q = q.toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+      const match = !q || row.dataset.name.includes(q) || row.dataset.role.includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    document.getElementById('noUserResults').style.display = visible === 0 ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

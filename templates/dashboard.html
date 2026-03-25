@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ShopSphere Secure{% endblock %}
+
+{% block extra_style %}
+.dash-wrap { padding: 2rem 5vw 4rem; }
+
+/* ── Welcome hero ── */
+.dash-hero {
+  background: var(--ink2); border: 1px solid var(--border); border-radius: 20px;
+  padding: 2rem 2rem 0; margin-bottom: 1.5rem;
+  position: relative; overflow: hidden;
+}
+.dash-hero-orb {
+  position:absolute;right:-80px;top:-80px;
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,255,0,0.12),transparent 70%);
+  pointer-events:none;
+}
+.dash-hero-orb2 {
+  position:absolute;right:60px;bottom:-60px;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(123,47,255,0.1),transparent 70%);
+  pointer-events:none;
+}
+.hero-inner { position:relative;z-index:2;display:flex;align-items:flex-end;gap:2rem;flex-wrap:wrap; }
+.hero-text { flex:1; padding-bottom:2rem; }
+.hero-greeting { font-size:0.8rem;color:var(--muted2);font-weight:500;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem; }
+.hero-name { font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:0.5rem; }
+.hero-name span { color:var(--lime); }
+.hero-role {
+  display:inline-flex;align-items:center;gap:0.4rem;
+  padding:0.25rem 0.75rem;border-radius:100px;font-size:0.72rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.05em;
+}
+.role-customer { background:rgba(0,194,255,0.12);color:#67D7FF;border:1px solid rgba(0,194,255,0.25); }
+.role-admin    { background:rgba(200,255,0,0.12);color:var(--lime);border:1px solid rgba(200,255,0,0.25); }
+
+.hero-avatar {
+  width:100px;height:100px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(200,255,0,0.2),rgba(123,47,255,0.2));
+  border:2px solid rgba(200,255,0,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;color:var(--lime);
+  margin-bottom:1.5rem;flex-shrink:0;
+}
+
+/* ── Stats grid ── */
+.dash-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:0.85rem;margin-bottom:1.5rem; }
+.dstat {
+  background:var(--ink2);border:1px solid var(--border);border-radius:16px;
+  padding:1.25rem;display:flex;flex-direction:column;gap:0.4rem;
+  transition:border-color 0.2s,transform 0.2s;
+}
+.dstat:hover { border-color:rgba(200,255,0,0.2);transform:translateY(-2px); }
+.dstat-icon {
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;margin-bottom:0.25rem;
+}
+.dstat .ds-val { font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;letter-spacing:-0.03em; }
+.dstat .ds-label { font-size:0.72rem;color:var(--muted2);font-weight:500;text-transform:uppercase;letter-spacing:0.05em; }
+.dstat .ds-sub { font-size:0.72rem;color:var(--muted);margin-top:0.1rem; }
+
+/* ── Two-col layout ── */
+.dash-cols { display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem; }
+
+.dash-card {
+  background:var(--ink2);border:1px solid var(--border);border-radius:16px;
+  padding:1.4rem;
+}
+.dash-card-title {
+  font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.06em;color:var(--muted2);
+  margin-bottom:1.1rem;display:flex;align-items:center;gap:0.5rem;
+}
+.dash-card-title i { color:var(--lime); }
+
+/* Recent orders mini list */
+.mini-order {
+  display:flex;align-items:center;gap:0.75rem;
+  padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.mini-order:last-child { border-bottom:none;padding-bottom:0; }
+.mo-num { font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:700;min-width:70px; }
+.mo-date { font-size:0.75rem;color:var(--muted2);flex:1; }
+.mo-amount { font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;color:var(--lime); }
+.mo-badge {
+  padding:0.15rem 0.5rem;border-radius:100px;font-size:0.62rem;font-weight:700;text-transform:uppercase;
+}
+.mob-placed    { background:rgba(0,194,255,0.1);  color:#67D7FF; }
+.mob-processing{ background:rgba(255,190,0,0.1);  color:#FFD166; }
+.mob-shipped   { background:rgba(123,47,255,0.1); color:#A97BFF; }
+.mob-delivered { background:rgba(40,202,65,0.1);  color:#4ADE80; }
+.mob-cancelled { background:rgba(255,77,109,0.1); color:#FF8FA3; }
+
+/* Account info */
+.info-row {
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.05);
+  font-size:0.85rem;
+}
+.info-row:last-child { border-bottom:none;padding-bottom:0; }
+.info-row .ir-label { color:var(--muted2); }
+.info-row .ir-val { font-weight:600; }
+
+/* Spending breakdown bar */
+.spend-bar-wrap { margin-bottom:0.5rem; }
+.spend-bar-label { display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:0.35rem; }
+.spend-bar-label span:first-child { color:var(--muted2); }
+.spend-bar-label span:last-child { font-weight:700; }
+.spend-bar-track { height:6px;background:var(--ink3);border-radius:100px;overflow:hidden; }
+.spend-bar-fill { height:100%;border-radius:100px;transition:width 1s ease; }
+
+/* Quick links */
+.quick-links { display:grid;grid-template-columns:1fr 1fr;gap:0.6rem; }
+.qlink {
+  display:flex;align-items:center;gap:0.6rem;
+  background:var(--ink3);border:1px solid var(--border);border-radius:12px;
+  padding:0.75rem 1rem;text-decoration:none;color:var(--white);
+  font-size:0.82rem;font-weight:600;
+  transition:border-color 0.2s,background 0.2s,transform 0.2s;
+}
+.qlink i { color:var(--lime);font-size:1rem; }
+.qlink:hover { border-color:rgba(200,255,0,0.3);background:rgba(200,255,0,0.05);transform:translateY(-1px); }
+
+@media(max-width:768px){
+  .dash-stats { grid-template-columns:1fr 1fr; }
+  .dash-cols  { grid-template-columns:1fr; }
+  .hero-name  { font-size:1.5rem; }
+}
+@media(max-width:480px){
+  .dash-stats { grid-template-columns:1fr 1fr; }
+  .quick-links { grid-template-columns:1fr; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-grid-1x2"></i> Account</div>
+    <h1>Dashboard</h1>
+  </div>
+  <a href="{{ url_for('products') }}" class="btn btn-ghost"><i class="bi bi-bag"></i> Shop</a>
+</div>
+
+<div class="dash-wrap">
+
+  {# ── Compute all stats from orders ── #}
+  {% set total_orders = orders|length %}
+  {% set total_spent = orders|sum(attribute='total_amount') %}
+  {% set delivered_count = orders|selectattr('status','equalto','Delivered')|list|length %}
+  {% set cancelled_count = orders|selectattr('status','equalto','Cancelled')|list|length %}
+  {% set in_progress = orders|rejectattr('status','equalto','Delivered')|rejectattr('status','equalto','Cancelled')|list|length %}
+  {% set avg_order = (total_spent / total_orders) if total_orders > 0 else 0 %}
+
+  {# ── Hero ── #}
+  <div class="dash-hero">
+    <div class="dash-hero-orb"></div>
+    <div class="dash-hero-orb2"></div>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-greeting">Welcome back</div>
+        <div class="hero-name">Hey, <span>{{ current_user.username }}</span> 👋</div>
+        <span class="hero-role {{ 'role-admin' if current_user.role == 'admin' else 'role-customer' }}">
+          <i class="bi {{ 'bi-shield-fill' if current_user.role == 'admin' else 'bi-person-fill' }}"></i>
+          {{ current_user.role | capitalize }}
+        </span>
+      </div>
+      <div class="hero-avatar">{{ current_user.username[0]|upper }}</div>
+    </div>
+  </div>
+
+  {# ── Stats ── #}
+  <div class="dash-stats">
+    <div class="dstat">
+      <div class="dstat-icon" style="background:rgba(200,255,0,0.1);color:var(--lime);"><i class="bi bi-box-seam"></i></div>
+      <span class="ds-val">{{ total_orders }}</span>
+      <span class="ds-label">Orders</span>
+      <span class="ds-sub">All time</span>
+    </div>
+    <div class="dstat">
+      <div class="dstat-icon" style="background:rgba(0,194,255,0.1);color:#00C2FF;"><i class="bi bi-wallet2"></i></div>
+      <span class="ds-val" style="color:var(--lime);">₹{{ "%.0f"|format(total_spent) }}</span>
+      <span class="ds-label">Total Spent</span>
+      <span class="ds-sub">Avg ₹{{ "%.0f"|format(avg_order) }}/order</span>
+    </div>
+    <div class="dstat">
+      <div class="dstat-icon" style="background:rgba(40,202,65,0.1);color:#4ADE80;"><i class="bi bi-house-check"></i></div>
+      <span class="ds-val" style="color:#4ADE80;">{{ delivered_count }}</span>
+      <span class="ds-label">Delivered</span>
+      <span class="ds-sub">{{ "%.0f"|format((delivered_count/total_orders*100) if total_orders else 0) }}% success rate</span>
+    </div>
+    <div class="dstat">
+      <div class="dstat-icon" style="background:rgba(255,190,0,0.1);color:#FFD166;"><i class="bi bi-truck"></i></div>
+      <span class="ds-val" style="color:#FFD166;">{{ in_progress }}</span>
+      <span class="ds-label">In Progress</span>
+      <span class="ds-sub">{{ cancelled_count }} cancelled</span>
+    </div>
+  </div>
+
+  {# ── Two columns ── #}
+  <div class="dash-cols">
+
+    {# Recent orders #}
+    <div class="dash-card">
+      <div class="dash-card-title"><i class="bi bi-clock-history"></i> Recent Orders</div>
+      {% if orders %}
+        {% for order in orders[:5] %}
+          {% set s = order.status | lower %}
+          <div class="mini-order">
+            <span class="mo-num">#{{ order.order_id }}</span>
+            <span class="mo-date">{{ order.order_date.strftime('%d %b %Y') if order.order_date else '—' }}</span>
+            <span class="mo-badge mob-{{ s.split()[0] }}">{{ order.status }}</span>
+            <span class="mo-amount">₹{{ "%.0f"|format(order.total_amount) }}</span>
+          </div>
+        {% endfor %}
+        {% if total_orders > 5 %}
+          <a href="{{ url_for('order_history') }}" style="display:block;text-align:center;font-size:0.78rem;color:var(--lime);margin-top:0.75rem;text-decoration:none;">
+            View all {{ total_orders }} orders →
+          </a>
+        {% endif %}
+      {% else %}
+        <div style="text-align:center;color:var(--muted2);padding:1.5rem 0;font-size:0.85rem;">No orders yet.</div>
+      {% endif %}
+    </div>
+
+    {# Account info + spending #}
+    <div class="dash-card">
+      <div class="dash-card-title"><i class="bi bi-person-badge"></i> Account Info</div>
+      <div class="info-row">
+        <span class="ir-label">Username</span>
+        <span class="ir-val">{{ current_user.username }}</span>
+      </div>
+      <div class="info-row">
+        <span class="ir-label">Role</span>
+        <span class="ir-val" style="color:var(--lime);">{{ current_user.role | capitalize }}</span>
+      </div>
+      <div class="info-row">
+        <span class="ir-label">Account Status</span>
+        <span class="ir-val" style="color:#4ADE80;"><i class="bi bi-check-circle-fill"></i> Active</span>
+      </div>
+
+      {% if total_orders > 0 %}
+      <div style="margin-top:1.1rem;padding-top:1.1rem;border-top:1px solid var(--border);">
+        <div class="dash-card-title" style="margin-bottom:0.85rem;"><i class="bi bi-bar-chart"></i> Order Breakdown</div>
+        {% set delivered_pct = (delivered_count / total_orders * 100)|int %}
+        {% set progress_pct  = (in_progress   / total_orders * 100)|int %}
+        {% set cancelled_pct = (cancelled_count/ total_orders * 100)|int %}
+
+        <div class="spend-bar-wrap">
+          <div class="spend-bar-label"><span>Delivered</span><span style="color:#4ADE80;">{{ delivered_count }}</span></div>
+          <div class="spend-bar-track"><div class="spend-bar-fill" style="width:{{ delivered_pct }}%;background:#4ADE80;"></div></div>
+        </div>
+        <div class="spend-bar-wrap" style="margin-top:0.6rem;">
+          <div class="spend-bar-label"><span>In Progress</span><span style="color:#FFD166;">{{ in_progress }}</span></div>
+          <div class="spend-bar-track"><div class="spend-bar-fill" style="width:{{ progress_pct }}%;background:#FFD166;"></div></div>
+        </div>
+        <div class="spend-bar-wrap" style="margin-top:0.6rem;">
+          <div class="spend-bar-label"><span>Cancelled</span><span style="color:#FF8FA3;">{{ cancelled_count }}</span></div>
+          <div class="spend-bar-track"><div class="spend-bar-fill" style="width:{{ cancelled_pct }}%;background:#FF8FA3;"></div></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Quick Links ── #}
+  <div class="dash-card">
+    <div class="dash-card-title"><i class="bi bi-lightning-fill"></i> Quick Actions</div>
+    <div class="quick-links">
+      <a href="{{ url_for('products') }}" class="qlink"><i class="bi bi-bag"></i> Browse Products</a>
+      <a href="{{ url_for('cart') }}" class="qlink"><i class="bi bi-cart3"></i> View Cart
+        {% if cart_count > 0 %}<span style="background:var(--coral);color:white;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:700;margin-left:auto;">{{ cart_count }}</span>{% endif %}
+      </a>
+      <a href="{{ url_for('order_history') }}" class="qlink"><i class="bi bi-clock-history"></i> My Orders</a>
+      <a href="{{ url_for('checkout') }}" class="qlink"><i class="bi bi-lock-fill"></i> Checkout</a>
+      {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('admin_products') }}" class="qlink"><i class="bi bi-box-seam"></i> Manage Products</a>
+      <a href="{{ url_for('admin_unlock_accounts') }}" class="qlink"><i class="bi bi-shield-lock"></i> Unlock Accounts</a>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

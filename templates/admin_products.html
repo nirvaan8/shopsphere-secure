@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Admin — Products{% endblock %}
+
+{% block extra_style %}
+.admin-wrap { padding: 2rem 5vw 4rem; }
+.admin-topbar { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.75rem; }
+.admin-pill {
+  display:inline-flex;align-items:center;gap:0.4rem;
+  padding:0.3rem 0.75rem;border-radius:100px;
+  background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.2);
+  color:#FF8FA3;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+}
+
+.stats-row { display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem; }
+.stat-card { background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:1.1rem; }
+.stat-card .s-val { font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;letter-spacing:-0.02em; }
+.stat-card .s-lbl { font-size:0.72rem;color:var(--muted2);text-transform:uppercase;letter-spacing:0.05em;margin-top:0.2rem; }
+
+.table-card { background:var(--ink2);border:1px solid var(--border);border-radius:16px;overflow:hidden; }
+.table-head { padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+.table-head h3 { font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem; }
+
+.prod-id { font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:var(--muted2); }
+.prod-name-cell { font-weight:600; }
+.prod-desc-cell { font-size:0.78rem;color:var(--muted2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.price-cell { font-family:'Syne',sans-serif;font-weight:700;color:var(--lime); }
+.stock-cell { font-weight:600; }
+.stock-ok { color:#4ADE80; }
+.stock-low { color:#FFD166; }
+.stock-zero { color:#FF8FA3; }
+
+.action-cell { display:flex;gap:0.4rem; }
+
+@media(max-width:900px){ .stats-row{grid-template-columns:1fr 1fr 1fr;} }
+@media(max-width:700px){ .stats-row{grid-template-columns:1fr 1fr;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-shield-fill"></i> Admin Panel</div>
+    <h1>Product Management</h1>
+  </div>
+  <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <span class="admin-pill"><i class="bi bi-person-fill"></i> {{ current_user.username }}</span>
+    <a href="{{ url_for('admin_unlock_accounts') }}" class="btn btn-elec btn-sm"><i class="bi bi-unlock"></i> Locked Accounts</a>
+    <a href="{{ url_for('admin_add_product') }}" class="btn btn-lime"><i class="bi bi-plus-lg"></i> Add Product</a>
+  </div>
+</div>
+
+<div class="admin-wrap">
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="s-val text-lime">{{ products|length }}</div>
+      <div class="s-lbl">Total Products</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-val text-elec">{{ products|selectattr('stock','gt',0)|list|length }}</div>
+      <div class="s-lbl">In Stock</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-val text-coral">{{ products|selectattr('stock','equalto',0)|list|length }}</div>
+      <div class="s-lbl">Out of Stock</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-head">
+      <h3>All Products</h3>
+      <span style="font-size:0.78rem;color:var(--muted2);">{{ products|length }} items</span>
+    </div>
+    {% if products %}
+      <div style="overflow-x:auto;">
+        <table class="styled">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Product Name</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+              <tr>
+                <td><span class="prod-id">#{{ p.product_id }}</span></td>
+                <td><span class="prod-name-cell">{{ p.name }}</span></td>
+                <td><span class="prod-desc-cell">{{ p.description or '—' }}</span></td>
+                <td><span class="price-cell">₹{{ "%.2f"|format(p.price) }}</span></td>
+                <td>
+                  <span class="stock-cell {% if p.stock <= 0 %}stock-zero{% elif p.stock <= 5 %}stock-low{% else %}stock-ok{% endif %}">
+                    {{ p.stock }}
+                    {% if p.stock <= 0 %} <span style="font-size:0.7rem;font-weight:400;">(out)</span>
+                    {% elif p.stock <= 5 %} <span style="font-size:0.7rem;font-weight:400;">(low)</span>{% endif %}
+                  </span>
+                </td>
+                <td>
+                  <div class="action-cell">
+                    <a href="{{ url_for('admin_edit_product', product_id=p.product_id) }}" class="btn btn-ghost btn-sm">
+                      <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <form method="POST" action="{{ url_for('admin_delete_product', product_id=p.product_id) }}" onsubmit="return confirm('Delete \'{{ p.name }}\'? This cannot be undone.')">
+                      <button type="submit" class="btn btn-coral btn-sm">
+                        <i class="bi bi-trash3"></i> Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="icon">📦</div>
+        <h3>No products yet</h3>
+        <p>Add your first product to get started.</p>
+        <a href="{{ url_for('admin_add_product') }}" class="btn btn-lime"><i class="bi bi-plus-lg"></i> Add Product</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

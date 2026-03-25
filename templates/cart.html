@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% block title %}Your Cart — ShopSphere Secure{% endblock %}
+
+{% block extra_style %}
+.cart-wrap { padding: 2rem 5vw 4rem; }
+.cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+
+.cart-items { display: flex; flex-direction: column; gap: 0.75rem; }
+.cart-item {
+  background: var(--ink2); border: 1px solid var(--border); border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  display: flex; align-items: center; gap: 1.1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cart-item:hover { border-color: rgba(200,255,0,0.15); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+
+.item-icon-wrap {
+  width: 58px; height: 58px; border-radius: 14px; flex-shrink: 0;
+  background: var(--ink3); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; margin-bottom:0.2rem;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.item-unit-price { font-size:0.78rem; color:var(--muted2); }
+
+.item-controls { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.qty-stepper {
+  display: flex; align-items: center; gap: 0;
+  background: var(--ink3); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+}
+.qty-stepper button {
+  background: none; border: none; color: var(--muted2);
+  width: 32px; height: 36px; cursor: pointer; font-size: 1rem;
+  transition: background 0.15s, color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.qty-stepper button:hover { background: rgba(200,255,0,0.1); color: var(--lime); }
+.qty-stepper input {
+  width: 40px; background: none; border: none; outline: none;
+  text-align: center; color: var(--white); font-family:'Syne',sans-serif;
+  font-size: 0.9rem; font-weight: 700; padding: 0;
+}
+/* hide number arrows */
+.qty-stepper input::-webkit-outer-spin-button,
+.qty-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.qty-stepper input[type=number] { -moz-appearance: textfield; }
+
+.item-subtotal {
+  font-family:'Syne',sans-serif; font-size:1rem; font-weight:800;
+  color: var(--lime); min-width: 72px; text-align: right; flex-shrink: 0;
+}
+
+.remove-btn {
+  background: none; border: 1px solid transparent; border-radius: 8px;
+  color: var(--muted); width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s;
+  font-size: 0.9rem; flex-shrink: 0;
+}
+.remove-btn:hover { background: rgba(255,77,109,0.12); color: #FF8FA3; border-color: rgba(255,77,109,0.3); }
+
+/* Updating state */
+.cart-item.updating { opacity: 0.6; pointer-events: none; }
+.cart-item.updating .item-name::after {
+  content: ' · Updating…'; font-size:0.75rem; color: var(--muted); font-weight:400;
+}
+
+/* Summary sidebar */
+.order-summary {
+  background: var(--ink2); border: 1px solid var(--border); border-radius: 16px;
+  padding: 1.5rem; position: sticky; top: 6rem;
+}
+.summary-title { font-family:'Syne',sans-serif; font-size:1rem; font-weight:800; margin-bottom:1.25rem; }
+.summary-rows { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem; }
+.summary-row { display: flex; justify-content: space-between; align-items: center; font-size:0.85rem; }
+.summary-row .label { color: var(--muted2); }
+.summary-row .val { font-weight: 600; }
+.summary-divider { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; }
+.summary-total { display:flex;justify-content:space-between;align-items:center; margin-bottom:1.25rem; }
+.summary-total .t-label { font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; }
+.summary-total .t-val { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; color:var(--lime); }
+.checkout-btn {
+  display:block;width:100%;padding:0.85rem;background:var(--lime);color:var(--ink);
+  border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;
+  cursor:pointer;text-align:center;text-decoration:none;letter-spacing:0.01em;
+  transition:box-shadow 0.2s,transform 0.2s;
+}
+.checkout-btn:hover { box-shadow:0 0 24px rgba(200,255,0,0.35);transform:translateY(-1px); }
+.secure-note { font-size:0.72rem;color:var(--muted);text-align:center;margin-top:0.75rem;display:flex;align-items:center;justify-content:center;gap:0.3rem; }
+.secure-note i { color:var(--lime); }
+
+.empty-cart { text-align:center;padding:4rem 2rem; }
+.empty-cart .ec-icon { font-size:4rem;opacity:0.25;margin-bottom:1rem; }
+.empty-cart h3 { font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:0.5rem; }
+.empty-cart p { color:var(--muted2);margin-bottom:1.5rem; }
+
+@media(max-width:768px){
+  .cart-layout { grid-template-columns:1fr; }
+  .order-summary { position:static; }
+}
+@media(max-width:500px){
+  .cart-item { flex-wrap: wrap; gap: 0.75rem; }
+  .item-subtotal { min-width: auto; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-cart3"></i> Shopping</div>
+    <h1>Your Cart</h1>
+  </div>
+  <a href="{{ url_for('products') }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Keep Shopping</a>
+</div>
+
+<div class="cart-wrap">
+  {% if items %}
+  <div class="cart-layout">
+    <!-- Cart items -->
+    <div class="cart-items" id="cartItems">
+      {% for item in items %}
+      <div class="cart-item" id="cartItem-{{ item.product_id }}" data-pid="{{ item.product_id }}" data-unit="{{ item.price }}">
+        <div class="item-icon-wrap">
+          {% set n = item.name | lower %}
+          {% if 'mouse' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect x="18" y="14" width="28" height="38" rx="14" stroke="#C8FF00" stroke-width="3" fill="none"/><line x1="32" y1="14" x2="32" y2="37" stroke="#C8FF00" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/><rect x="27" y="20" width="10" height="9" rx="4.5" fill="#C8FF00" opacity="0.8"/></svg>
+          {% elif 'keyboard' in n or 'mechanical' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect x="5" y="18" width="54" height="28" rx="5" stroke="#FF4D6D" stroke-width="3" fill="none"/><rect x="11" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.7"/><rect x="22" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.7"/><rect x="33" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.7"/><rect x="44" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.7"/></svg>
+          {% elif 'charger' in n or 'adapter' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect x="16" y="8" width="32" height="30" rx="7" stroke="#00C2FF" stroke-width="3" fill="none"/><path d="M36 16 L29 26 H35 L28 36" stroke="#00C2FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          {% elif 'earbud' in n or 'earphone' in n or 'headphone' in n or 'headset' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><path d="M12 35 C12 17 52 17 52 35" stroke="#7B2FFF" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="6" y="33" width="12" height="18" rx="6" fill="#7B2FFF" opacity="0.85"/><rect x="46" y="33" width="12" height="18" rx="6" fill="#7B2FFF" opacity="0.85"/></svg>
+          {% elif 'laptop' in n or 'notebook' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="48" height="30" rx="4" stroke="#C8FF00" stroke-width="3" fill="none"/><line x1="2" y1="42" x2="62" y2="42" stroke="#C8FF00" stroke-width="2.5" stroke-linecap="round"/></svg>
+          {% elif 'phone' in n or 'mobile' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect x="16" y="4" width="32" height="56" rx="7" stroke="#00C2FF" stroke-width="3" fill="none"/><circle cx="32" cy="54" r="3" fill="#00C2FF" opacity="0.6"/></svg>
+          {% elif 'watch' in n or 'smartwatch' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="16" stroke="#7B2FFF" stroke-width="3" fill="none"/><line x1="32" y1="22" x2="32" y2="32" stroke="#7B2FFF" stroke-width="2.5" stroke-linecap="round"/><line x1="32" y1="32" x2="40" y2="37" stroke="#7B2FFF" stroke-width="2" stroke-linecap="round"/></svg>
+          {% elif 'power bank' in n or 'powerbank' in n %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect x="7" y="18" width="48" height="26" rx="6" stroke="#C8FF00" stroke-width="3" fill="none"/><rect x="13" y="24" width="13" height="14" rx="2" fill="#C8FF00" opacity="0.7"/></svg>
+          {% else %}
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect x="10" y="10" width="44" height="44" rx="9" stroke="#00C2FF" stroke-width="3" fill="none"/><circle cx="32" cy="32" r="11" stroke="#00C2FF" stroke-width="2" fill="none" opacity="0.5"/></svg>
+          {% endif %}
+        </div>
+
+        <div class="item-info">
+          <div class="item-name">{{ item.name }}</div>
+          <div class="item-unit-price">₹{{ "%.2f"|format(item.price) }} / unit</div>
+        </div>
+
+        <!-- Quantity stepper -->
+        <div class="item-controls">
+          <div class="qty-stepper">
+            <button type="button" onclick="changeQty({{ item.product_id }}, -1)" title="Decrease">
+              <i class="bi bi-dash"></i>
+            </button>
+            <input type="number" id="qty-{{ item.product_id }}"
+                   value="{{ item.quantity }}" min="1" max="99"
+                   onchange="updateQty({{ item.product_id }})"
+                   onblur="updateQty({{ item.product_id }})"/>
+            <button type="button" onclick="changeQty({{ item.product_id }}, 1)" title="Increase">
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+
+          <div class="item-subtotal" id="sub-{{ item.product_id }}">
+            ₹{{ "%.2f"|format(item.subtotal) }}
+          </div>
+
+          <form method="POST" action="{{ url_for('remove_from_cart', product_id=item.product_id) }}">
+            <button type="submit" class="remove-btn" title="Remove item">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+      <div class="summary-title">Order Summary</div>
+      <div class="summary-rows">
+        <div class="summary-row">
+          <span class="label">Items ({{ items|length }})</span>
+          <span class="val" id="summarySubtotal">₹{{ "%.2f"|format(total) }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Shipping</span>
+          <span class="val" style="color:#4ADE80;">Free</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Security</span>
+          <span class="val" style="color:var(--muted);font-size:0.75rem;">Encrypted</span>
+        </div>
+      </div>
+      <hr class="summary-divider"/>
+      <div class="summary-total">
+        <span class="t-label">Total</span>
+        <span class="t-val" id="summaryTotal">₹{{ "%.2f"|format(total) }}</span>
+      </div>
+      <a href="{{ url_for('checkout') }}" class="checkout-btn">
+        <i class="bi bi-lock-fill"></i> Proceed to Checkout
+      </a>
+      <div class="secure-note"><i class="bi bi-shield-check-fill"></i> 256-bit encrypted checkout</div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-cart">
+    <div class="ec-icon"><i class="bi bi-cart-x"></i></div>
+    <h3>Your cart is empty</h3>
+    <p>Looks like you haven't added anything yet.</p>
+    <a href="{{ url_for('products') }}" class="btn btn-lime"><i class="bi bi-bag"></i> Browse Products</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  function changeQty(pid, delta) {
+    const input = document.getElementById('qty-' + pid);
+    const newVal = Math.max(1, parseInt(input.value || 1) + delta);
+    input.value = newVal;
+    updateQty(pid);
+  }
+
+  function updateQty(pid) {
+    const input = document.getElementById('qty-' + pid);
+    const qty = Math.max(1, parseInt(input.value) || 1);
+    input.value = qty;
+
+    const card = document.getElementById('cartItem-' + pid);
+    const unitPrice = parseFloat(card.dataset.unit);
+    const newSub = (unitPrice * qty).toFixed(2);
+
+    // Update subtotal on this row
+    document.getElementById('sub-' + pid).textContent = '₹' + newSub;
+
+    // Recalculate full total from all rows
+    let total = 0;
+    document.querySelectorAll('.cart-item').forEach(item => {
+      const p = item.dataset.pid;
+      const u = parseFloat(item.dataset.unit);
+      const q = parseInt(document.getElementById('qty-' + p).value) || 1;
+      total += u * q;
+    });
+    const fmt = '₹' + total.toFixed(2);
+    document.getElementById('summarySubtotal').textContent = fmt;
+    document.getElementById('summaryTotal').textContent = fmt;
+
+    // Persist to server
+    card.classList.add('updating');
+    fetch(`/update-cart/${pid}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ quantity: qty })
+    })
+    .then(r => r.json())
+    .then(data => {
+      card.classList.remove('updating');
+      // If server returns updated cart_count, refresh nav badge
+      if (data.cart_count !== undefined) {
+        const badge = document.querySelector('.nav-cart-badge');
+        if (badge) badge.textContent = data.cart_count;
+      }
+    })
+    .catch(() => card.classList.remove('updating'));
+  }
+</script>
+{% endblock %}

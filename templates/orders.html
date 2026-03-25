@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block title %}My Orders — ShopSphere Secure{% endblock %}
+
+{% block extra_style %}
+.orders-wrap { padding: 2rem 5vw 4rem; }
+
+/* Stats */
+.order-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.75rem; }
+.ostat { background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:0.3rem; }
+.ostat .os-val { font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800; }
+.ostat .os-label { font-size:0.72rem;color:var(--muted2);font-weight:500;text-transform:uppercase;letter-spacing:0.05em; }
+
+/* Filter bar */
+.filter-bar { display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem; }
+.filter-search-wrap { position:relative;flex:1;min-width:200px; }
+.filter-search-wrap i { position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none; }
+.filter-input {
+  width:100%;padding:0.6rem 1rem 0.6rem 2.4rem;
+  background:var(--ink2);border:1px solid var(--border);border-radius:10px;
+  color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.875rem;outline:none;transition:border-color 0.2s;
+}
+.filter-input:focus { border-color:rgba(200,255,0,0.4); }
+.filter-input::placeholder { color:var(--muted); }
+
+.status-filters { display:flex;gap:0.4rem;flex-wrap:wrap; }
+.sf-btn {
+  padding:0.4rem 0.85rem;border-radius:8px;font-size:0.72rem;font-weight:700;
+  cursor:pointer;border:1px solid var(--border);background:var(--ink2);color:var(--muted2);
+  transition:all 0.18s;letter-spacing:0.04em;text-transform:uppercase;
+}
+.sf-btn:hover { color:var(--white);border-color:rgba(255,255,255,0.2); }
+.sf-btn.sf-all.active    { background:var(--lime);color:var(--ink);border-color:var(--lime); }
+.sf-btn[data-s="placed"].active     { background:rgba(0,194,255,0.15);color:#67D7FF;border-color:rgba(0,194,255,0.4); }
+.sf-btn[data-s="processing"].active { background:rgba(255,190,0,0.15);color:#FFD166;border-color:rgba(255,190,0,0.4); }
+.sf-btn[data-s="shipped"].active    { background:rgba(123,47,255,0.15);color:#A97BFF;border-color:rgba(123,47,255,0.4); }
+.sf-btn[data-s="delivered"].active  { background:rgba(40,202,65,0.15);color:#4ADE80;border-color:rgba(40,202,65,0.4); }
+.sf-btn[data-s="cancelled"].active  { background:rgba(255,77,109,0.15);color:#FF8FA3;border-color:rgba(255,77,109,0.4); }
+
+.results-info { font-size:0.78rem;color:var(--muted2);margin-bottom:1rem; }
+.results-info strong { color:var(--white); }
+
+/* Order cards */
+.orders-list { display:flex;flex-direction:column;gap:1rem; }
+.order-card { background:var(--ink2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color 0.2s; }
+.order-card:hover { border-color:rgba(255,255,255,0.1); }
+.order-card.oc-hidden { display:none; }
+
+.order-header { padding:1.1rem 1.4rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;cursor:pointer;user-select:none;transition:background 0.2s; }
+.order-header:hover { background:rgba(255,255,255,0.02); }
+.order-id   { font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700; }
+.order-date { font-size:0.78rem;color:var(--muted2); }
+
+.status-badge { padding:0.25rem 0.75rem;border-radius:100px;font-size:0.7rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase; }
+.status-placed    { background:rgba(0,194,255,0.12);color:#67D7FF;border:1px solid rgba(0,194,255,0.25); }
+.status-processing{ background:rgba(255,190,0,0.12);color:#FFD166;border:1px solid rgba(255,190,0,0.25); }
+.status-shipped   { background:rgba(123,47,255,0.12);color:#A97BFF;border:1px solid rgba(123,47,255,0.25); }
+.status-delivered { background:rgba(40,202,65,0.12);color:#4ADE80;border:1px solid rgba(40,202,65,0.25); }
+.status-cancelled { background:rgba(255,77,109,0.12);color:#FF8FA3;border:1px solid rgba(255,77,109,0.25); }
+
+.order-total { font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--lime);margin-left:auto; }
+.toggle-icon { color:var(--muted);font-size:0.8rem;transition:transform 0.25s; }
+.order-card.open .toggle-icon { transform:rotate(180deg); }
+
+/* Progress */
+.progress-wrap { padding:1.25rem 1.4rem 0.5rem;border-bottom:1px solid var(--border); }
+.progress-track { display:flex;align-items:flex-start;justify-content:space-between;position:relative;margin-bottom:0.4rem; }
+.progress-track::before { content:'';position:absolute;top:16px;left:0;right:0;height:2px;background:var(--border);z-index:0; }
+.progress-fill { position:absolute;top:16px;left:0;height:2px;background:linear-gradient(90deg,var(--lime),rgba(200,255,0,0.4));z-index:1;transition:width 0.8s cubic-bezier(.4,0,.2,1); }
+.prog-step { display:flex;flex-direction:column;align-items:center;gap:0.4rem;position:relative;z-index:2;flex:1; }
+.prog-dot { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);background:var(--ink3);font-size:0.85rem;transition:all 0.4s ease; }
+.prog-dot.done   { background:var(--lime);border-color:var(--lime);color:var(--ink); }
+.prog-dot.active { background:rgba(200,255,0,0.15);border-color:var(--lime);color:var(--lime);box-shadow:0 0 12px rgba(200,255,0,0.3); }
+.prog-dot.pending{ color:var(--muted);border-color:rgba(255,255,255,0.1); }
+.prog-label { font-size:0.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;text-align:center; }
+.prog-label.done { color:var(--lime); } .prog-label.active { color:var(--white); }
+.prog-cancelled { display:flex;align-items:center;gap:0.5rem;color:#FF8FA3;font-size:0.8rem;padding:0.5rem 0 0.75rem; }
+
+/* Items table */
+.order-body { padding:1.25rem 1.4rem;display:none; }
+.order-card.open .order-body { display:block; }
+.order-items-table { width:100%;border-collapse:collapse;font-size:0.83rem; }
+.order-items-table th { text-align:left;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:0 0 0.6rem;border-bottom:1px solid var(--border); }
+.order-items-table th:last-child { text-align:right; }
+.order-items-table td { padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle; }
+.order-items-table td:last-child { text-align:right;font-family:'Syne',sans-serif;font-weight:700;color:var(--lime); }
+.order-items-table tr:last-child td { border-bottom:none; }
+.item-dot { width:8px;height:8px;border-radius:50%;background:var(--lime);display:inline-block;margin-right:0.5rem;opacity:0.6; }
+.order-footer { display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border); }
+.order-footer .of-label { font-size:0.78rem;color:var(--muted2); }
+.order-footer .of-total { font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--lime); }
+
+.no-results { text-align:center;padding:3rem;color:var(--muted2);display:none; }
+.no-results i { font-size:2.5rem;opacity:0.3;display:block;margin-bottom:0.75rem; }
+
+@media(max-width:600px){
+  .order-stats { grid-template-columns:1fr 1fr; }
+  .prog-dot { width:26px;height:26px;font-size:0.7rem; }
+  .progress-track::before,.progress-fill { top:13px; }
+  .prog-label { font-size:0.58rem; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-box-seam"></i> Account</div>
+    <h1>My Orders</h1>
+  </div>
+  <a href="{{ url_for('products') }}" class="btn btn-ghost"><i class="bi bi-bag"></i> Shop More</a>
+</div>
+
+<div class="orders-wrap">
+  {% if orders %}
+    {% set total_orders = orders|length %}
+    {% set total_spent  = orders|sum(attribute='total_amount') %}
+    {% set delivered    = orders|selectattr('status','equalto','Delivered')|list|length %}
+    {% set in_progress  = orders|rejectattr('status','equalto','Delivered')|rejectattr('status','equalto','Cancelled')|list|length %}
+
+    <div class="order-stats">
+      <div class="ostat"><span class="os-val">{{ total_orders }}</span><span class="os-label">Total Orders</span></div>
+      <div class="ostat"><span class="os-val" style="color:var(--lime);">₹{{ "%.0f"|format(total_spent) }}</span><span class="os-label">Total Spent</span></div>
+      <div class="ostat"><span class="os-val" style="color:#4ADE80;">{{ delivered }}</span><span class="os-label">Delivered</span></div>
+      <div class="ostat"><span class="os-val" style="color:#FFD166;">{{ in_progress }}</span><span class="os-label">In Progress</span></div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-search-wrap">
+        <i class="bi bi-search"></i>
+        <input class="filter-input" id="orderSearch" type="text" placeholder="Search by order # or product name…"/>
+      </div>
+      <div class="status-filters">
+        <button class="sf-btn sf-all active" onclick="filterOrders('all',this)">All</button>
+        <button class="sf-btn" data-s="placed"     onclick="filterOrders('placed',this)">Placed</button>
+        <button class="sf-btn" data-s="processing" onclick="filterOrders('processing',this)">Processing</button>
+        <button class="sf-btn" data-s="shipped"    onclick="filterOrders('shipped',this)">Shipped</button>
+        <button class="sf-btn" data-s="delivered"  onclick="filterOrders('delivered',this)">Delivered</button>
+        <button class="sf-btn" data-s="cancelled"  onclick="filterOrders('cancelled',this)">Cancelled</button>
+      </div>
+    </div>
+
+    <div class="results-info" id="resultsInfo">Showing <strong>{{ total_orders }}</strong> order{{ 's' if total_orders != 1 }}</div>
+
+    <div class="orders-list" id="ordersList">
+      {% for order in orders %}
+        {% set s = order.status | lower %}
+        {% if 'cancel' in s %}{% set step=-1 %}
+        {% elif 'deliver' in s %}{% set step=4 %}
+        {% elif 'ship' in s or 'transit' in s %}{% set step=3 %}
+        {% elif 'process' in s or 'confirm' in s %}{% set step=2 %}
+        {% else %}{% set step=1 %}{% endif %}
+        {% set fill_pct = [0,0,33,66,100][step] if step >= 0 else 0 %}
+
+        {% set item_names = [] %}
+        {% if order_items and order_items[order.order_id] %}
+          {% for it in order_items[order.order_id] %}{% set _ = item_names.append(it.name|lower) %}{% endfor %}
+        {% endif %}
+
+        <div class="order-card"
+             data-status="{{ s.split()[0] }}"
+             data-id="{{ order.order_id }}"
+             data-products="{{ item_names|join(' ') }}">
+
+          <div class="order-header" onclick="this.closest('.order-card').classList.toggle('open')">
+            <div>
+              <div class="order-id">Order #{{ order.order_id }}</div>
+              <div class="order-date">{{ order.order_date.strftime('%d %b %Y, %I:%M %p') if order.order_date else '—' }}</div>
+            </div>
+            <span class="status-badge status-{{ s.split()[0] }}">{{ order.status }}</span>
+            <span class="order-total">₹{{ "%.2f"|format(order.total_amount) }}</span>
+            <i class="bi bi-chevron-down toggle-icon"></i>
+          </div>
+
+          {% if step >= 0 %}
+          <div class="progress-wrap">
+            <div class="progress-track">
+              <div class="progress-fill" style="width:{{ fill_pct }}%"></div>
+              {% for icon,label,si in [('bi-bag-check-fill','Placed',1),('bi-gear-fill','Processing',2),('bi-truck','Shipped',3),('bi-house-check-fill','Delivered',4)] %}
+                {% set dc = 'done' if si < step else ('active' if si == step else 'pending') %}
+                <div class="prog-step">
+                  <div class="prog-dot {{ dc }}">{% if dc=='done' %}<i class="bi bi-check-lg"></i>{% else %}<i class="bi {{ icon }}"></i>{% endif %}</div>
+                  <span class="prog-label {{ dc }}">{{ label }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+          <div class="progress-wrap"><div class="prog-cancelled"><i class="bi bi-x-circle-fill"></i> This order was cancelled.</div></div>
+          {% endif %}
+
+          <div class="order-body">
+            <table class="order-items-table">
+              <thead><tr><th>Product</th><th style="text-align:center">Qty</th><th>Subtotal</th></tr></thead>
+              <tbody>
+                {% if order_items and order_items[order.order_id] %}
+                  {% for it in order_items[order.order_id] %}
+                  <tr>
+                    <td><span class="item-dot"></span>{{ it.name }}</td>
+                    <td style="text-align:center;color:var(--muted2)">× {{ it.quantity }}</td>
+                    <td>₹{{ "%.2f"|format(it.price * it.quantity) }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr><td colspan="3" style="color:var(--muted2);text-align:center;padding:1rem">No item details.</td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+            <div class="order-footer">
+              <span class="of-label">Order Total</span>
+              <span class="of-total">₹{{ "%.2f"|format(order.total_amount) }}</span>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="no-results" id="noResults"><i class="bi bi-search"></i>No orders match your search.</div>
+
+  {% else %}
+    <div class="empty-state">
+      <div style="font-size:3.5rem;opacity:0.2;margin-bottom:1rem;"><i class="bi bi-box2"></i></div>
+      <h3>No orders yet</h3>
+      <p style="color:var(--muted2);margin-bottom:1.5rem;">Start shopping to see your orders here.</p>
+      <a href="{{ url_for('products') }}" class="btn btn-lime"><i class="bi bi-bag"></i> Browse Products</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  let activeStatus = 'all';
+
+  function filterOrders(status, btn) {
+    activeStatus = status;
+    document.querySelectorAll('.sf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  }
+
+  document.getElementById('orderSearch')?.addEventListener('input', applyFilters);
+
+  function applyFilters() {
+    const q = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('.order-card').forEach(card => {
+      const statusOk = activeStatus === 'all' || card.dataset.status === activeStatus;
+      const searchOk = !q || ('#' + card.dataset.id).includes(q) || card.dataset.id.includes(q) || card.dataset.products.includes(q);
+      const show = statusOk && searchOk;
+      card.classList.toggle('oc-hidden', !show);
+      if (show) visible++;
+    });
+    const noun = visible === 1 ? 'order' : 'orders';
+    const info = document.getElementById('resultsInfo');
+    if (info) info.innerHTML = `Showing <strong>${visible}</strong> ${noun}`;
+    const nr = document.getElementById('noResults');
+    if (nr) nr.style.display = visible === 0 ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

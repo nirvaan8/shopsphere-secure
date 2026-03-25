@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}ShopSphere Secure{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --lime:    #C8FF00;
+      --coral:   #FF4D6D;
+      --electric:#00C2FF;
+      --violet:  #7B2FFF;
+      --ink:     #0A0A0F;
+      --ink2:    #13131C;
+      --ink3:    #1E1E2E;
+      --ink4:    #252538;
+      --muted:   #6B6B8A;
+      --muted2:  #9898B8;
+      --white:   #F5F5FF;
+      --border:  rgba(255,255,255,0.07);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--ink);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: 0.4;
+    }
+    main { flex: 1; position: relative; z-index: 1; }
+
+    /* NAV */
+    nav.topnav {
+      position: sticky; top: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 5vw;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem;
+      letter-spacing: -0.03em; text-decoration: none; color: var(--white);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-logo .pulse {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--lime);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(200,255,0,0.6);} 50%{box-shadow:0 0 0 7px rgba(200,255,0,0);} }
+
+    .nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .nav-links a {
+      padding: 0.45rem 0.85rem; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--muted2); text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .nav-links a:hover { background: var(--ink3); color: var(--white); }
+    .nav-links a.active { color: var(--white); background: var(--ink3); }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--coral); color: white;
+      border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700;
+    }
+    .btn-nav {
+      padding: 0.45rem 1.1rem; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none;
+      font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-nav-ghost { background: transparent; color: var(--muted2); border: 1px solid var(--border); }
+    .btn-nav-ghost:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+    .btn-nav-lime { background: var(--lime); color: var(--ink); }
+    .btn-nav-lime:hover { box-shadow: 0 0 18px rgba(200,255,0,0.35); transform: translateY(-1px); }
+
+    /* ALERTS / FLASH */
+    .flash-container { padding: 0.75rem 5vw 0; position: relative; z-index: 10; }
+    .flash-msg {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.7rem 1rem; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;
+    }
+    .flash-success { background: rgba(200,255,0,0.1); border: 1px solid rgba(200,255,0,0.25); color: var(--lime); }
+    .flash-danger  { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.25); color: #FF8FA3; }
+    .flash-info    { background: rgba(0,194,255,0.1);  border: 1px solid rgba(0,194,255,0.25);  color: var(--electric); }
+    .flash-warning { background: rgba(255,190,0,0.1);  border: 1px solid rgba(255,190,0,0.25);  color: #FFD166; }
+
+    /* PAGE HEADER */
+    .page-header {
+      padding: 2.5rem 5vw 0;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -0.03em;
+    }
+    .page-header .label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--lime); margin-bottom: 0.35rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .page-header .label::before { content:''; width:16px; height:1.5px; background:var(--lime); display:block; }
+
+    /* CARDS */
+    .card {
+      background: var(--ink2); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .card-pad { padding: 1.5rem; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1.3rem; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: all 0.2s;
+    }
+    .btn-lime { background: var(--lime); color: var(--ink); }
+    .btn-lime:hover { box-shadow: 0 0 18px rgba(200,255,0,0.35); transform: translateY(-1px); color: var(--ink); }
+    .btn-coral { background: rgba(255,77,109,0.15); color: #FF8FA3; border: 1px solid rgba(255,77,109,0.25); }
+    .btn-coral:hover { background: rgba(255,77,109,0.25); }
+    .btn-ghost { background: transparent; color: var(--muted2); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+    .btn-elec { background: rgba(0,194,255,0.15); color: var(--electric); border: 1px solid rgba(0,194,255,0.25); }
+    .btn-elec:hover { background: rgba(0,194,255,0.25); }
+    .btn-sm { padding: 0.4rem 0.85rem; font-size: 0.8rem; }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* FORM ELEMENTS */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted2); margin-bottom: 0.4rem; letter-spacing: 0.03em; text-transform: uppercase; }
+    .form-control {
+      width: 100%; padding: 0.7rem 1rem;
+      background: var(--ink3); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--white);
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    .form-control:focus { border-color: rgba(200,255,0,0.4); box-shadow: 0 0 0 3px rgba(200,255,0,0.08); }
+    .form-control::placeholder { color: var(--muted); }
+    select.form-control option { background: var(--ink3); }
+    textarea.form-control { resize: vertical; min-height: 90px; }
+
+    /* TABLE */
+    table.styled { width: 100%; border-collapse: collapse; }
+    table.styled th {
+      padding: 0.75rem 1rem; text-align: left;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--muted); border-bottom: 1px solid var(--border);
+    }
+    table.styled td { padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; vertical-align: middle; }
+    table.styled tr:last-child td { border-bottom: none; }
+    table.styled tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* STATUS BADGES */
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.25rem 0.65rem; border-radius: 100px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .badge-placed   { background:rgba(200,255,0,0.1);   color:var(--lime);     border:1px solid rgba(200,255,0,0.2);   } .badge-placed::before   { background:var(--lime); }
+    .badge-paid     { background:rgba(0,194,255,0.1);   color:var(--electric); border:1px solid rgba(0,194,255,0.2);   } .badge-paid::before     { background:var(--electric); }
+    .badge-shipped  { background:rgba(123,47,255,0.1);  color:#A67CFF;         border:1px solid rgba(123,47,255,0.2);  } .badge-shipped::before  { background:#A67CFF; }
+    .badge-delivered{ background:rgba(40,202,65,0.1);   color:#4ADE80;         border:1px solid rgba(40,202,65,0.2);   } .badge-delivered::before{ background:#4ADE80; }
+    .badge-cancelled{ background:rgba(255,77,109,0.1);  color:#FF8FA3;         border:1px solid rgba(255,77,109,0.2);  } .badge-cancelled::before{ background:#FF8FA3; }
+    .badge-customer { background:rgba(0,194,255,0.1);   color:var(--electric); border:1px solid rgba(0,194,255,0.2); }
+    .badge-admin    { background:rgba(255,77,109,0.1);  color:#FF8FA3;         border:1px solid rgba(255,77,109,0.2); }
+
+    /* FOOTER */
+    footer.btm {
+      padding: 1.25rem 5vw;
+      background: var(--ink2); border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.78rem; color: var(--muted);
+      position: relative; z-index: 1;
+    }
+    footer.btm a { color: var(--muted); text-decoration: none; }
+    footer.btm a:hover { color: var(--white); }
+
+    /* UTIL */
+    .text-lime { color: var(--lime); }
+    .text-coral { color: #FF8FA3; }
+    .text-elec { color: var(--electric); }
+    .text-muted { color: var(--muted2); }
+    .fw-bold { font-weight: 700; }
+    .syne { font-family: 'Syne', sans-serif; }
+    .empty-state {
+      text-align: center; padding: 4rem 2rem; color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state h3 { font-family:'Syne',sans-serif; font-size:1.1rem; color:var(--muted2); margin-bottom:0.5rem; }
+    .empty-state p { font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+    @media(max-width:768px) {
+      .nav-links { display: none; }
+      .page-header { padding: 1.5rem 1rem 0; }
+    }
+
+    {% block extra_style %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <a href="{{ url_for('home') }}" class="nav-logo">
+    ShopSphere<span style="color:var(--muted);font-weight:400;font-size:0.95rem;">Secure</span>
+    <span class="pulse"></span>
+  </a>
+
+  <div class="nav-links">
+    {% if current_user.is_authenticated %}
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin_sales_dashboard') }}" {% if request.endpoint == 'admin_sales_dashboard' %}class="active"{% endif %}>
+          <i class="bi bi-speedometer2"></i> Sales
+        </a>
+        <a href="{{ url_for('admin_products') }}" {% if request.endpoint == 'admin_products' %}class="active"{% endif %}>
+          <i class="bi bi-grid"></i> Products
+        </a>
+        <a href="{{ url_for('admin_unlock_accounts') }}" {% if request.endpoint == 'admin_unlock_accounts' %}class="active"{% endif %}>
+          <i class="bi bi-shield-check"></i> Accounts
+        </a>
+      {% else %}
+        <a href="{{ url_for('dashboard') }}" {% if request.endpoint == 'dashboard' %}class="active"{% endif %}>
+          <i class="bi bi-grid-1x2"></i> Dashboard
+        </a>
+        <a href="{{ url_for('products') }}" {% if request.endpoint == 'products' %}class="active"{% endif %}>
+          <i class="bi bi-bag"></i> Products
+        </a>
+        <a href="{{ url_for('cart') }}" {% if request.endpoint == 'cart' %}class="active"{% endif %}>
+          <i class="bi bi-cart3"></i> Cart
+          {% if cart_count > 0 %}<span class="nav-badge">{{ cart_count }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('order_history') }}" {% if request.endpoint == 'order_history' %}class="active"{% endif %}>
+          <i class="bi bi-clock-history"></i> Orders
+        </a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="nav-actions">
+    {% if current_user.is_authenticated %}
+      <span style="font-size:0.8rem;color:var(--muted2);display:flex;align-items:center;gap:0.4rem;">
+        <i class="bi bi-person-circle"></i> {{ current_user.username }}
+        {% if current_user.role == 'admin' %}<span class="badge badge-admin">Admin</span>{% endif %}
+      </span>
+      <a href="{{ url_for('logout') }}" class="btn-nav btn-nav-ghost"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="btn-nav btn-nav-ghost">Log In</a>
+      <a href="{{ url_for('register') }}" class="btn-nav btn-nav-lime">Sign Up</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-msg flash-{{ category }}">
+          {% if category == 'success' %}<i class="bi bi-check-circle-fill"></i>
+          {% elif category == 'danger' %}<i class="bi bi-exclamation-triangle-fill"></i>
+          {% elif category == 'info' %}<i class="bi bi-info-circle-fill"></i>
+          {% else %}<i class="bi bi-exclamation-circle-fill"></i>{% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="btm">
+  <span>© 2025 ShopSphere Secure · Python + Flask + MySQL</span>
+  <span style="display:flex;align-items:center;gap:0.4rem;">
+    <i class="bi bi-shield-lock-fill" style="color:var(--lime)"></i>
+    PBKDF2 Encrypted · SQL Injection Safe · Brute-Force Protected
+  </span>
+</footer>
+
+<script>
+  // Attach CSRF token to every AJAX fetch automatically
+  const _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  const _origFetch = window.fetch;
+  window.fetch = (url, opts = {}) => {
+    opts.headers = { ...(opts.headers || {}), 'X-CSRFToken': _csrfToken };
+    return _origFetch(url, opts);
+  };
+</script>
+{% block extra_script %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Register — ShopSphere Secure{% endblock %}
+
+{% block extra_style %}
+.auth-wrap {
+  min-height: calc(100vh - 120px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 3rem 1rem; position: relative; overflow: hidden;
+}
+.auth-orb { position:absolute;border-radius:50%;filter:blur(100px);opacity:0.12; }
+.ao1 { width:400px;height:400px;background:var(--electric);top:-60px;left:-80px; }
+.ao2 { width:320px;height:320px;background:var(--coral);bottom:-60px;right:-40px; }
+
+.auth-card {
+  background:var(--ink2);border:1px solid var(--border);border-radius:20px;
+  width:100%;max-width:440px;padding:2.5rem;
+  position:relative;z-index:2;
+  box-shadow:0 30px 80px rgba(0,0,0,0.4);
+  animation:slideUp 0.5s ease both;
+}
+@keyframes slideUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+.auth-logo { display:flex;align-items:center;gap:0.5rem;margin-bottom:2rem;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem; }
+.auth-logo .dot { width:7px;height:7px;border-radius:50%;background:var(--lime); }
+.auth-title { font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.03em;margin-bottom:0.35rem; }
+.auth-sub { font-size:0.875rem;color:var(--muted2);margin-bottom:2rem;line-height:1.5; }
+.input-icon-wrap { position:relative; }
+.input-icon-wrap .ic { position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.95rem;pointer-events:none; }
+.input-icon-wrap .form-control { padding-left:2.5rem; }
+.role-grid { display:grid;grid-template-columns:1fr 1fr;gap:0.6rem; }
+.role-opt { position:relative; }
+.role-opt input { position:absolute;opacity:0;width:0;height:0; }
+.role-label {
+  display:flex;flex-direction:column;align-items:center;gap:0.5rem;
+  padding:0.85rem;border:1px solid var(--border);border-radius:12px;
+  cursor:pointer;transition:all 0.2s;text-align:center;
+}
+.role-label .r-icon { font-size:1.4rem; }
+.role-label .r-name { font-size:0.8rem;font-weight:600; }
+.role-label .r-desc { font-size:0.7rem;color:var(--muted); }
+.role-opt input:checked + .role-label { border-color:var(--lime);background:rgba(200,255,0,0.07); }
+.role-opt input:checked + .role-label .r-name { color:var(--lime); }
+.auth-footer { text-align:center;margin-top:1.5rem;font-size:0.85rem;color:var(--muted2); }
+.auth-footer a { color:var(--lime);text-decoration:none;font-weight:600; }
+.auth-footer a:hover { text-decoration:underline; }
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-orb ao1"></div>
+  <div class="auth-orb ao2"></div>
+
+  <div class="auth-card">
+    <div class="auth-logo">
+      ShopSphere<span style="color:var(--muted);font-weight:400;font-size:0.9rem;">Secure</span>
+      <span class="dot"></span>
+    </div>
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-sub">Join ShopSphere Secure and shop with confidence — protected by enterprise-grade security.</p>
+
+    <form method="POST" action="{{ url_for('register') }}">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-person ic"></i>
+          <input name="username" type="text" class="form-control" placeholder="Choose a username" required autocomplete="username"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-lock ic"></i>
+          <input name="password" type="password" class="form-control" placeholder="Create a strong password" required autocomplete="new-password"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account Type</label>
+        <div class="role-grid">
+          <div class="role-opt">
+            <input type="radio" name="role" id="role-customer" value="customer" checked/>
+            <label class="role-label" for="role-customer">
+              <span class="r-icon">🛒</span>
+              <span class="r-name">Customer</span>
+              <span class="r-desc">Browse &amp; buy products</span>
+            </label>
+          </div>
+          <div class="role-opt">
+            <input type="radio" name="role" id="role-admin" value="admin"/>
+            <label class="role-label" for="role-admin">
+              <span class="r-icon">⚙️</span>
+              <span class="r-name">Admin</span>
+              <span class="r-desc">Manage inventory &amp; users</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-lime btn-full" style="padding:0.75rem;font-size:0.95rem;border-radius:12px;margin-top:0.5rem;">
+        <i class="bi bi-person-plus-fill"></i> Create Account
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

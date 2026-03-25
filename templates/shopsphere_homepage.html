@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopSphere Secure</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --lime:    #C8FF00;
+      --coral:   #FF4D6D;
+      --electric:#00C2FF;
+      --violet:  #7B2FFF;
+      --ink:     #0A0A0F;
+      --ink2:    #13131C;
+      --ink3:    #1E1E2E;
+      --muted:   #6B6B8A;
+      --white:   #F5F5FF;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--ink);
+      color: var(--white);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Custom Cursor ── */
+    #cursor {
+      width: 12px; height: 12px;
+      background: var(--lime);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease, width 0.2s, height 0.2s, background 0.2s;
+      transform: translate(-50%, -50%);
+    }
+    #cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(200,255,0,0.45);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.35s cubic-bezier(.23,1,.32,1), width 0.3s, height 0.3s, border-color 0.3s;
+    }
+    body:has(a:hover) #cursor, body:has(button:hover) #cursor { transform: translate(-50%,-50%) scale(2.2); background: var(--coral); }
+    body:has(a:hover) #cursor-ring, body:has(button:hover) #cursor-ring { width: 56px; height: 56px; border-color: rgba(255,77,109,0.5); }
+
+    /* ── Noise Overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 1000; opacity: 0.55;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 5vw;
+      background: rgba(10,10,15,0.7);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      animation: slideDown 0.8s ease both;
+    }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.35rem;
+      letter-spacing: -0.03em;
+      display: flex; align-items: center; gap: 0.5rem;
+      text-decoration: none; color: var(--white);
+    }
+    .nav-logo span.dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--lime);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(200,255,0,0.6);} 50%{box-shadow:0 0 0 8px rgba(200,255,0,0);} }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--muted); text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1.5px; background: var(--lime);
+      transition: width 0.25s ease;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+    .btn-ghost {
+      padding: 0.55rem 1.2rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: var(--white);
+      border-radius: 100px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; font-weight: 500;
+      cursor: none; text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--lime); background: rgba(200,255,0,0.07); }
+
+    .btn-primary {
+      padding: 0.55rem 1.4rem;
+      background: var(--lime);
+      color: var(--ink);
+      border: none; border-radius: 100px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; font-weight: 700;
+      cursor: none; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 0 0 rgba(200,255,0,0.4);
+    }
+    .btn-primary:hover { transform: scale(1.04); box-shadow: 0 0 22px rgba(200,255,0,0.45); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 10rem 5vw 6rem;
+      gap: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated gradient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.18;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: var(--violet); top: -100px; right: 0; animation-duration: 14s; }
+    .orb-2 { width: 350px; height: 350px; background: var(--coral); bottom: 0; right: 15%; animation-duration: 10s; animation-delay: -3s; }
+    .orb-3 { width: 280px; height: 280px; background: var(--electric); top: 30%; left: -60px; animation-duration: 16s; animation-delay: -6s; }
+    @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px, 20px) scale(1.1); } }
+
+    .hero-content { position: relative; z-index: 2; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0.9rem;
+      border: 1px solid rgba(200,255,0,0.3);
+      border-radius: 100px;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--lime);
+      background: rgba(200,255,0,0.07);
+      margin-bottom: 1.75rem;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+    .hero-badge .shield { font-size: 0.9rem; }
+
+    h1.hero-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.8rem, 5.5vw, 5rem);
+      line-height: 1.0;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.7s 0.35s ease both;
+    }
+
+    .hero-title .line-accent {
+      display: block;
+      background: linear-gradient(90deg, var(--lime) 0%, var(--electric) 60%, var(--coral) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.7s 0.5s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 1rem; align-items: center;
+      animation: fadeUp 0.7s 0.65s ease both;
+    }
+    .btn-xl {
+      padding: 0.9rem 2rem;
+      background: var(--lime);
+      color: var(--ink);
+      border: none; border-radius: 100px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      cursor: none; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-xl:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(200,255,0,0.35); }
+    .btn-xl-ghost {
+      padding: 0.9rem 2rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--white);
+      border-radius: 100px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      cursor: none; text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-xl-ghost:hover { border-color: var(--electric); background: rgba(0,194,255,0.06); }
+
+    .hero-stats {
+      display: flex; gap: 2.5rem; margin-top: 3.5rem;
+      animation: fadeUp 0.7s 0.8s ease both;
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 0.25rem; }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.75rem; font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .stat-num .accent-lime { color: var(--lime); }
+    .stat-num .accent-coral { color: var(--coral); }
+    .stat-num .accent-electric { color: var(--electric); }
+    .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── HERO RIGHT – Floating card mockup ── */
+    .hero-visual {
+      position: relative; z-index: 2;
+      display: flex; justify-content: center; align-items: center;
+      animation: fadeUp 0.9s 0.4s ease both;
+    }
+
+    .mockup-card {
+      background: var(--ink2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      width: 100%; max-width: 420px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .mockup-header {
+      background: var(--ink3);
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .dot-r { width: 10px; height: 10px; border-radius: 50%; background: #FF5F57; }
+    .dot-y { width: 10px; height: 10px; border-radius: 50%; background: #FFBD2E; }
+    .dot-g { width: 10px; height: 10px; border-radius: 50%; background: #28CA41; }
+    .url-bar {
+      flex: 1; background: rgba(255,255,255,0.05);
+      border-radius: 6px; padding: 0.3rem 0.75rem;
+      font-size: 0.72rem; color: var(--muted); margin-left: 0.5rem;
+    }
+    .secure-badge-url {
+      display: flex; align-items: center; gap: 0.3rem;
+      font-size: 0.7rem; color: var(--lime);
+    }
+
+    .mockup-body { padding: 1.25rem; }
+
+    .product-grid-mock {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.75rem; margin-bottom: 1rem;
+    }
+    .product-card-mock {
+      background: var(--ink3);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: transform 0.2s;
+      cursor: none;
+    }
+    .product-card-mock:hover { transform: translateY(-3px); }
+
+    .prod-img {
+      height: 90px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+    }
+    .prod-img.c1 { background: linear-gradient(135deg, #7B2FFF22, #7B2FFF55); }
+    .prod-img.c2 { background: linear-gradient(135deg, #FF4D6D22, #FF4D6D55); }
+    .prod-img.c3 { background: linear-gradient(135deg, #00C2FF22, #00C2FF55); }
+    .prod-img.c4 { background: linear-gradient(135deg, #C8FF0022, #C8FF0055); }
+
+    .prod-info { padding: 0.6rem 0.75rem 0.75rem; }
+    .prod-name { font-size: 0.72rem; font-weight: 600; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prod-price { font-size: 0.75rem; color: var(--lime); font-weight: 700; }
+
+    .add-btn {
+      width: 100%; padding: 0.55rem;
+      background: linear-gradient(90deg, var(--lime), var(--electric));
+      border: none; border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem; font-weight: 700;
+      color: var(--ink); cursor: none;
+      transition: opacity 0.2s;
+    }
+    .add-btn:hover { opacity: 0.88; }
+
+    .security-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(200,255,0,0.07);
+      border: 1px solid rgba(200,255,0,0.15);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      margin-top: 0.75rem;
+    }
+    .security-bar span { font-size: 0.72rem; color: var(--lime); font-weight: 600; }
+    .shield-icon { font-size: 1rem; }
+
+    /* Floating badges around card */
+    .float-badge {
+      position: absolute;
+      background: var(--ink2);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.75rem; font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      display: flex; align-items: center; gap: 0.4rem;
+      animation: floatBadge 4s ease-in-out infinite;
+    }
+    @keyframes floatBadge { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+    .fb1 { top: -16px; right: -20px; border-color: rgba(200,255,0,0.25); animation-delay: 0s; }
+    .fb2 { bottom: 30px; left: -28px; border-color: rgba(255,77,109,0.25); animation-delay: 1.5s; }
+    .fb3 { top: 50%; right: -32px; border-color: rgba(0,194,255,0.25); animation-delay: 0.75s; }
+
+    /* ── MARQUEE STRIP ── */
+    .marquee-wrap {
+      overflow: hidden;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: var(--ink2);
+      padding: 1rem 0;
+    }
+    .marquee-track {
+      display: flex; gap: 3rem;
+      animation: marquee 22s linear infinite;
+      width: max-content;
+    }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .marquee-item {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+    }
+    .marquee-item .tag {
+      font-size: 0.85rem;
+    }
+    .marquee-sep { color: var(--lime); font-size: 1rem; }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 7rem 5vw;
+      position: relative;
+    }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--lime); margin-bottom: 1rem;
+    }
+    .section-label::before {
+      content: ''; display: block;
+      width: 20px; height: 1.5px; background: var(--lime);
+    }
+    h2.section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1rem;
+    }
+    .section-sub { color: var(--muted); max-width: 500px; line-height: 1.7; margin-bottom: 4rem; font-size: 1rem; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      background: var(--ink2);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute;
+      inset: 0; opacity: 0;
+      transition: opacity 0.3s;
+      border-radius: 20px;
+    }
+    .feature-card:hover { transform: translateY(-6px); }
+
+    .fc-lime::before  { background: radial-gradient(circle at top left, rgba(200,255,0,0.08), transparent 60%); }
+    .fc-coral::before { background: radial-gradient(circle at top left, rgba(255,77,109,0.08), transparent 60%); }
+    .fc-elec::before  { background: radial-gradient(circle at top left, rgba(0,194,255,0.08), transparent 60%); }
+    .fc-viol::before  { background: radial-gradient(circle at top left, rgba(123,47,255,0.08), transparent 60%); }
+    .fc-lime2::before { background: radial-gradient(circle at top left, rgba(200,255,0,0.06), transparent 60%); }
+    .fc-coral2::before{ background: radial-gradient(circle at top left, rgba(255,77,109,0.06), transparent 60%); }
+
+    .feature-card:hover::before { opacity: 1; }
+    .fc-lime:hover  { border-color: rgba(200,255,0,0.3);  box-shadow: 0 20px 60px rgba(200,255,0,0.08); }
+    .fc-coral:hover { border-color: rgba(255,77,109,0.3); box-shadow: 0 20px 60px rgba(255,77,109,0.08); }
+    .fc-elec:hover  { border-color: rgba(0,194,255,0.3);  box-shadow: 0 20px 60px rgba(0,194,255,0.08); }
+    .fc-viol:hover  { border-color: rgba(123,47,255,0.3); box-shadow: 0 20px 60px rgba(123,47,255,0.08); }
+
+    .feature-icon {
+      width: 50px; height: 50px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .fi-lime  { background: rgba(200,255,0,0.12); }
+    .fi-coral { background: rgba(255,77,109,0.12); }
+    .fi-elec  { background: rgba(0,194,255,0.12); }
+    .fi-viol  { background: rgba(123,47,255,0.12); }
+
+    .feature-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem; font-weight: 700;
+      margin-bottom: 0.6rem; letter-spacing: -0.01em;
+    }
+    .feature-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.65; }
+
+    .feature-card.wide { grid-column: span 2; }
+    .feature-card.tall-right { grid-column: 3; grid-row: 1 / 3; }
+
+    .tall-inner {
+      height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .security-visual {
+      flex: 1; display: flex; flex-direction: column; gap: 0.6rem;
+      margin: 1.5rem 0;
+    }
+    .sec-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: var(--ink3);
+      border-radius: 10px; padding: 0.65rem 0.9rem;
+      font-size: 0.8rem;
+    }
+    .sec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .s-green { background: #28CA41; box-shadow: 0 0 8px #28CA41; }
+    .s-lime  { background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+    .s-coral { background: var(--coral); box-shadow: 0 0 8px var(--coral); }
+    .sec-text { flex: 1; color: var(--white); }
+    .sec-time { color: var(--muted); font-size: 0.72rem; }
+
+    /* ── HOW IT WORKS ── */
+    .how {
+      padding: 6rem 5vw;
+      background: var(--ink2);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .steps-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem; position: relative; margin-top: 3.5rem;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 2rem; left: calc(12.5% + 1.5rem);
+      right: calc(12.5% + 1.5rem); height: 1px;
+      background: linear-gradient(90deg, var(--lime), var(--electric), var(--coral));
+      z-index: 0;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; position: relative; z-index: 1;
+    }
+    .step-num {
+      width: 4rem; height: 4rem;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 800;
+      margin-bottom: 1.25rem;
+      border: 2px solid;
+    }
+    .sn1 { background: rgba(200,255,0,0.1); border-color: var(--lime); color: var(--lime); }
+    .sn2 { background: rgba(0,194,255,0.1); border-color: var(--electric); color: var(--electric); }
+    .sn3 { background: rgba(255,77,109,0.1); border-color: var(--coral); color: var(--coral); }
+    .sn4 { background: rgba(123,47,255,0.1); border-color: var(--violet); color: var(--violet); }
+    .step-title { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .step-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── CTA ── */
+    .cta {
+      padding: 8rem 5vw;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(123,47,255,0.15) 0%, transparent 70%);
+    }
+    .cta h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      font-weight: 800; letter-spacing: -0.04em;
+      line-height: 1.05; margin-bottom: 1.25rem;
+      position: relative;
+    }
+    .cta h2 em { font-style: normal; color: var(--lime); }
+    .cta p { color: var(--muted); font-size: 1.05rem; max-width: 480px; margin: 0 auto 2.5rem; line-height: 1.7; position: relative; }
+    .cta-actions { display: flex; gap: 1rem; justify-content: center; position: relative; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink2);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 2.5rem 5vw;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; }
+    .footer-copy { font-size: 0.8rem; color: var(--muted); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--white); }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; padding-top: 8rem; }
+      .hero-visual { display: none; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .feature-card.wide { grid-column: span 2; }
+      .feature-card.tall-right { grid-column: span 2; grid-row: auto; }
+      .steps-grid { grid-template-columns: 1fr 1fr; }
+      .steps-grid::before { display: none; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    ShopSphere<span style="color:var(--muted);font-weight:400;">Secure</span>
+    <span class="dot"></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#">Products</a></li>
+    <li><a href="#">Security</a></li>
+    <li><a href="#">Admin</a></li>
+    <li><a href="#">About</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn-ghost">Log In</a>
+    <a href="#" class="btn-primary">Sign Up Free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="shield">🛡️</span>
+      Enterprise-grade security · Built with Python & Flask
+    </div>
+    <h1 class="hero-title">
+      Shop Without<br>
+      <span class="line-accent">Fear. Ever.</span>
+    </h1>
+    <p class="hero-desc">
+      ShopSphere Secure combines blazing-fast e-commerce with military-grade cybersecurity — brute-force protection, SQL injection prevention, and role-based access. Shop smarter. Sleep better.
+    </p>
+    <div class="hero-actions">
+      <a href="#" class="btn-xl">Explore Products →</a>
+      <a href="#" class="btn-xl-ghost">See Security</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-num"><span class="accent-lime">5</span>-Layer</span>
+        <span class="stat-label">Security Stack</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num"><span class="accent-coral">30</span>min</span>
+        <span class="stat-label">Auto Account Lock</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num"><span class="accent-electric">3NF</span></span>
+        <span class="stat-label">DB Normalized</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="mockup-card">
+      <div class="mockup-header">
+        <div class="dot-r"></div>
+        <div class="dot-y"></div>
+        <div class="dot-g"></div>
+        <div class="url-bar">shopsphere.secure/products</div>
+        <div class="secure-badge-url">🔒 SSL</div>
+      </div>
+      <div class="mockup-body">
+        <div class="product-grid-mock">
+          <div class="product-card-mock">
+            <div class="prod-img c1">🎧</div>
+            <div class="prod-info">
+              <div class="prod-name">Pro Headphones</div>
+              <div class="prod-price">₹2,499</div>
+            </div>
+          </div>
+          <div class="product-card-mock">
+            <div class="prod-img c2">📱</div>
+            <div class="prod-info">
+              <div class="prod-name">Smart Phone X</div>
+              <div class="prod-price">₹18,999</div>
+            </div>
+          </div>
+          <div class="product-card-mock">
+            <div class="prod-img c3">💻</div>
+            <div class="prod-info">
+              <div class="prod-name">UltraBook Pro</div>
+              <div class="prod-price">₹54,999</div>
+            </div>
+          </div>
+          <div class="product-card-mock">
+            <div class="prod-img c4">⌚</div>
+            <div class="prod-info">
+              <div class="prod-name">Smart Watch</div>
+              <div class="prod-price">₹8,249</div>
+            </div>
+          </div>
+        </div>
+        <button class="add-btn">🛒 Add to Cart — Secured Checkout</button>
+        <div class="security-bar">
+          <span class="shield-icon">🛡️</span>
+          <span>PBKDF2 Encrypted · Session Protected</span>
+          <span style="color:var(--lime);font-size:0.9rem;">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating badges -->
+    <div class="float-badge fb1">
+      🔒 <span style="color:var(--lime)">Brute-Force Protected</span>
+    </div>
+    <div class="float-badge fb2">
+      ✅ <span style="color:#ff8fa3;">SQL Injection Safe</span>
+    </div>
+    <div class="float-badge fb3">
+      ⚡ <span style="color:var(--electric)">Live Inventory</span>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item"><span class="tag">🛡️</span> Brute-Force Protection</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">🔐</span> PBKDF2 Password Hashing</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">📊</span> 3NF Normalized Database</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">🧩</span> OOP Architecture</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">🛒</span> Multi-Item Cart System</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">⚙️</span> Role-Based Access Control</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">💳</span> Simulated UPI & Card Pay</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">📦</span> Order Tracking & History</span>
+    <span class="marquee-sep">◆</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item"><span class="tag">🛡️</span> Brute-Force Protection</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">🔐</span> PBKDF2 Password Hashing</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">📊</span> 3NF Normalized Database</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">🧩</span> OOP Architecture</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">🛒</span> Multi-Item Cart System</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">⚙️</span> Role-Based Access Control</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">💳</span> Simulated UPI & Card Pay</span>
+    <span class="marquee-sep">◆</span>
+    <span class="marquee-item"><span class="tag">📦</span> Order Tracking & History</span>
+    <span class="marquee-sep">◆</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-label">What We Offer</div>
+  <h2 class="section-title reveal">Features Built to<br>Impress & Protect</h2>
+  <p class="section-sub reveal">Every feature is engineered with OOP principles and secured at the database level — no shortcuts, no compromises.</p>
+
+  <div class="features-grid">
+    <!-- WIDE card -->
+    <div class="feature-card wide fc-lime reveal">
+      <div class="feature-icon fi-lime">🛒</div>
+      <div class="feature-title">Smart Cart & Checkout</div>
+      <p class="feature-desc">Add multiple items, update quantities on the fly, and proceed through a secured checkout workflow — all with real-time stock validation and instant total calculations backed by a normalized MySQL schema.</p>
+    </div>
+
+    <!-- TALL card -->
+    <div class="feature-card tall-right fc-viol reveal">
+      <div class="tall-inner">
+        <div>
+          <div class="feature-icon fi-viol">🛡️</div>
+          <div class="feature-title">Live Security Log</div>
+          <p class="feature-desc">Every login attempt is recorded. Accounts auto-lock after 5 failures in 10 minutes — admins can unlock instantly.</p>
+        </div>
+        <div class="security-visual">
+          <div class="sec-row">
+            <div class="sec-dot s-green"></div>
+            <span class="sec-text">Login success — user@demo.com</span>
+            <span class="sec-time">just now</span>
+          </div>
+          <div class="sec-row">
+            <div class="sec-dot s-lime"></div>
+            <span class="sec-text">Checkout completed — Order #1082</span>
+            <span class="sec-time">2m ago</span>
+          </div>
+          <div class="sec-row">
+            <div class="sec-dot s-coral"></div>
+            <span class="sec-text">⚠️ Failed login × 5 — LOCKED</span>
+            <span class="sec-time">7m ago</span>
+          </div>
+          <div class="sec-row">
+            <div class="sec-dot s-green"></div>
+            <span class="sec-text">Admin unlocked account</span>
+            <span class="sec-time">9m ago</span>
+          </div>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);">↑ Real-time security event feed</div>
+      </div>
+    </div>
+
+    <div class="feature-card fc-coral reveal">
+      <div class="feature-icon fi-coral">🔐</div>
+      <div class="feature-title">PBKDF2 Password Security</div>
+      <p class="feature-desc">Passwords are never stored in plaintext. PBKDF2 + salt hashing ensures that even a database breach exposes nothing usable.</p>
+    </div>
+
+    <div class="feature-card fc-elec reveal">
+      <div class="feature-icon fi-elec">🔎</div>
+      <div class="feature-title">Search & Filter Products</div>
+      <p class="feature-desc">Real-time search by name or description with parameterized SQL queries — fast, safe, and SQL-injection proof at every keystroke.</p>
+    </div>
+
+    <div class="feature-card fc-lime2 reveal" style="grid-column: 1;">
+      <div class="feature-icon fi-lime">📦</div>
+      <div class="feature-title">Order Tracking</div>
+      <p class="feature-desc">Track every order from placed → paid → shipped → delivered. Full history available in your personal dashboard.</p>
+    </div>
+
+    <div class="feature-card fc-coral2 reveal">
+      <div class="feature-icon fi-coral">⚙️</div>
+      <div class="feature-title">Admin Control Panel</div>
+      <p class="feature-desc">Role-based admin access to add, update, and delete products — with strict validation on price, stock, and user management.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="section-label">The Flow</div>
+  <h2 class="section-title reveal">How ShopSphere Works</h2>
+  <p class="section-sub reveal">A seamless journey from signup to delivered — secured at every step.</p>
+
+  <div class="steps-grid">
+    <div class="step reveal">
+      <div class="step-num sn1">01</div>
+      <div class="step-title">Register & Login</div>
+      <p class="step-desc">Secure signup with hashed passwords. Flask-Login manages your protected session from the first click.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num sn2">02</div>
+      <div class="step-title">Browse & Search</div>
+      <p class="step-desc">Explore the full catalog. Real-time search filters products by name or description — SQL-injection safe always.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num sn3">03</div>
+      <div class="step-title">Cart & Checkout</div>
+      <p class="step-desc">Add items, adjust quantities, view your live total. Checkout triggers stock validation and secure payment simulation.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num sn4">04</div>
+      <div class="step-title">Track Your Order</div>
+      <p class="step-desc">See real-time status updates and full order history — from placed to delivered, all logged in your account.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="cta-bg"></div>
+  <h2 class="reveal">Ready to Shop<br><em>Without Limits?</em></h2>
+  <p class="reveal">Join ShopSphere Secure — where every product browsed, every cart updated, and every order placed is protected by design.</p>
+  <div class="cta-actions reveal">
+    <a href="#" class="btn-xl">Create Free Account</a>
+    <a href="#" class="btn-xl-ghost">View Demo</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">ShopSphere<span style="color:var(--muted);font-weight:400;font-family:'DM Sans',sans-serif;font-size:0.9rem;"> Secure</span></div>
+  <span class="footer-copy">© 2025 ShopSphere Secure. Built with Python, Flask & MySQL.</span>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Security</a>
+    <a href="#">Docs</a>
+    <a href="#">GitHub</a>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.left = mx + 'px';
+    cursor.style.top  = my + 'px';
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        e.target.style.transitionDelay = (i % 4) * 0.08 + 's';
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Nav scroll effect
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    nav.style.background = window.scrollY > 40
+      ? 'rgba(10,10,15,0.95)'
+      : 'rgba(10,10,15,0.7)';
+  });
+</script>
+</body>
+</html>

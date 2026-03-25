@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Accounts — Admin{% endblock %}
+
+{% block extra_style %}
+.unlock-wrap { padding: 2rem 5vw 4rem; }
+
+/* Alert box */
+.alert-box {
+  display:flex;align-items:flex-start;gap:0.75rem;
+  background:rgba(255,77,109,0.07);border:1px solid rgba(255,77,109,0.18);border-radius:12px;
+  padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--muted2);line-height:1.6;
+}
+.alert-box i { color:#FF8FA3;font-size:1rem;flex-shrink:0;margin-top:0.1rem; }
+
+/* Section title */
+.section-title {
+  font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.1em;color:var(--muted2);
+  display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;
+}
+.section-title::after { content:'';flex:1;height:1px;background:var(--border); }
+
+/* Locked cards */
+.locked-list { display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem; }
+.locked-card {
+  background:var(--ink2);border:1px solid rgba(255,77,109,0.2);border-radius:14px;
+  padding:1.1rem 1.4rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  transition:border-color 0.2s;
+}
+.locked-card:hover { border-color:rgba(255,77,109,0.35); }
+.lock-icon { width:42px;height:42px;border-radius:12px;background:rgba(255,77,109,0.12);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
+.locked-info { flex:1;min-width:0; }
+.locked-username { font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.2rem; }
+.locked-meta { font-size:0.78rem;color:var(--muted2); }
+.locked-until { font-size:0.78rem;color:#FF8FA3;margin-top:0.15rem;display:flex;align-items:center;gap:0.3rem; }
+.unlock-btn {
+  padding:0.55rem 1.1rem;background:rgba(200,255,0,0.12);border:1px solid rgba(200,255,0,0.25);
+  color:var(--lime);border-radius:10px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;
+  cursor:pointer;transition:background 0.2s,transform 0.2s;display:flex;align-items:center;gap:0.4rem;white-space:nowrap;
+}
+.unlock-btn:hover { background:rgba(200,255,0,0.2);transform:translateY(-1px); }
+
+.all-clear {
+  text-align:center;padding:2.5rem 2rem;
+  background:var(--ink2);border:1px solid rgba(200,255,0,0.12);border-radius:16px;margin-bottom:2rem;
+}
+.all-clear .big-icon { font-size:2.5rem;margin-bottom:0.75rem; }
+.all-clear h3 { font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--lime);margin-bottom:0.4rem; }
+.all-clear p { font-size:0.875rem;color:var(--muted2); }
+
+/* Users table card */
+.users-card {
+  background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:1.4rem;
+}
+.users-toolbar {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;
+}
+.users-toolbar h2 { font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted2);display:flex;align-items:center;gap:0.4rem; }
+.users-toolbar h2 i { color:var(--lime); }
+.user-search-wrap { position:relative; }
+.user-search-wrap i { position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.8rem;pointer-events:none; }
+.user-search {
+  padding:0.4rem 0.85rem 0.4rem 2rem;background:var(--ink3);border:1px solid var(--border);
+  border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;
+  outline:none;width:210px;transition:border-color 0.2s;
+}
+.user-search:focus { border-color:rgba(200,255,0,0.4); }
+.user-search::placeholder { color:var(--muted); }
+
+/* Avatar */
+.u-avatar {
+  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.72rem;font-weight:800;
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-shield-fill"></i> Admin Panel</div>
+    <h1>Accounts</h1>
+  </div>
+</div>
+
+<div class="unlock-wrap">
+
+  <div class="alert-box">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>
+      Accounts are automatically locked for <strong style="color:#FF8FA3;">30 minutes</strong> after 5 consecutive failed login attempts within a 10-minute window. This is ShopSphere Secure's brute-force protection.
+    </div>
+  </div>
+
+  <!-- ── Locked accounts ── -->
+  <div class="section-title"><i class="bi bi-lock-fill" style="color:#FF8FA3;"></i> Locked Accounts
+    {% if locked_users %}
+      <span style="background:rgba(255,77,109,0.15);color:#FF8FA3;padding:0.15rem 0.55rem;border-radius:100px;font-size:0.7rem;">{{ locked_users|length }} locked</span>
+    {% endif %}
+  </div>
+
+  {% if locked_users %}
+    <div class="locked-list">
+      {% for user in locked_users %}
+        <div class="locked-card">
+          <div class="lock-icon">🔒</div>
+          <div class="locked-info">
+            <div class="locked-username">{{ user.username }}</div>
+            <div class="locked-meta">
+              <span class="badge {{ 'badge-admin' if user.role=='admin' else 'badge-customer' }}">{{ user.role }}</span>
+              &nbsp; User ID: #{{ user.user_id }}
+            </div>
+            <div class="locked-until"><i class="bi bi-clock"></i> Locked until: {{ user.locked_until }}</div>
+          </div>
+          <form method="POST" action="{{ url_for('admin_unlock_user', user_id=user.user_id) }}">
+            <button type="submit" class="unlock-btn"><i class="bi bi-unlock-fill"></i> Unlock Account</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="all-clear">
+      <div class="big-icon">✅</div>
+      <h3>All Clear — No Locked Accounts</h3>
+      <p>The brute-force protection system is actively monitoring all login attempts.</p>
+    </div>
+  {% endif %}
+
+  <!-- ── All users table ── -->
+  <div class="section-title"><i class="bi bi-people" style="color:var(--electric);"></i> All Users</div>
+
+  <div class="users-card">
+    <div class="users-toolbar">
+      <h2><i class="bi bi-people"></i> {{ all_users|length }} User{{ 's' if all_users|length != 1 }}</h2>
+      <div class="user-search-wrap">
+        <i class="bi bi-search"></i>
+        <input class="user-search" id="userSearch" type="text" placeholder="Search by name or role…" oninput="filterUsers(this.value)"/>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="styled" id="usersTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Orders</th>
+            <th>Total Spent</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in all_users %}
+          {% set is_locked = u.locked_until is not none %}
+          <tr data-name="{{ u.username|lower }}" data-role="{{ u.role }}">
+            <td style="color:var(--muted2);font-size:0.78rem;">#{{ u.user_id }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:0.6rem;">
+                <div class="u-avatar" style="background:{{ 'rgba(255,77,109,0.15)' if u.role=='admin' else 'rgba(0,194,255,0.1)' }};color:{{ '#FF8FA3' if u.role=='admin' else '#67D7FF' }};">
+                  {{ u.username[0]|upper }}
+                </div>
+                <span style="font-weight:600;">{{ u.username }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge {{ 'badge-admin' if u.role=='admin' else 'badge-customer' }}">{{ u.role }}</span>
+            </td>
+            <td style="color:var(--muted2);">{{ u.order_count }}</td>
+            <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--lime);">
+              {% if u.total_spent > 0 %}₹{{ "%.0f"|format(u.total_spent) }}{% else %}<span style="color:var(--muted);">—</span>{% endif %}
+            </td>
+            <td>
+              {% if is_locked %}
+                <span class="badge badge-cancelled"><i class="bi bi-lock-fill"></i> Locked</span>
+              {% else %}
+                <span class="badge badge-delivered"><i class="bi bi-check-lg"></i> Active</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if is_locked %}
+                <form method="POST" action="{{ url_for('admin_unlock_user', user_id=u.user_id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-elec"><i class="bi bi-unlock"></i> Unlock</button>
+                </form>
+              {% else %}
+                <span style="color:var(--muted);font-size:0.78rem;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="noUserResults" style="display:none;text-align:center;padding:2rem;color:var(--muted2);">
+      <i class="bi bi-search" style="opacity:0.3;display:block;font-size:1.5rem;margin-bottom:0.5rem;"></i>
+      No users match your search.
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  function filterUsers(q) {
+    q = q.toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+      const match = !q || row.dataset.name.includes(q) || row.dataset.role.includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    document.getElementById('noUserResults').style.display = visible === 0 ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Checkout — ShopSphere Secure{% endblock %}
+
+{% block extra_style %}
+.checkout-wrap { padding: 2rem 5vw 4rem; }
+.checkout-grid { display: grid; grid-template-columns: 1fr 360px; gap: 1.75rem; align-items: start; }
+
+.section-card { background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem; }
+.section-head { font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem; }
+.section-head .step-badge { width:26px;height:26px;border-radius:50%;background:var(--lime);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;flex-shrink:0; }
+
+.payment-methods { display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.65rem; }
+.pay-opt { position:relative; }
+.pay-opt input { position:absolute;opacity:0;width:0;height:0; }
+.pay-label {
+  display:flex;flex-direction:column;align-items:center;gap:0.45rem;
+  padding:0.9rem 0.5rem;border:1px solid var(--border);border-radius:12px;
+  cursor:pointer;transition:all 0.2s;text-align:center;
+}
+.pay-label .p-icon { font-size:1.4rem; }
+.pay-label .p-name { font-size:0.75rem;font-weight:700; }
+.pay-label .p-sub { font-size:0.67rem;color:var(--muted); }
+.pay-opt input:checked + .pay-label { border-color:var(--lime);background:rgba(200,255,0,0.07); }
+.pay-opt input:checked + .pay-label .p-name { color:var(--lime); }
+
+.order-lines { display:flex;flex-direction:column;gap:0.5rem; }
+.order-line { display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:var(--ink3);border-radius:10px;font-size:0.82rem; }
+.order-line .ol-emoji { font-size:1.2rem;flex-shrink:0; }
+.order-line .ol-name { flex:1;font-weight:500; }
+.order-line .ol-qty { color:var(--muted2); }
+.order-line .ol-price { font-weight:700;color:var(--lime);white-space:nowrap; }
+
+.total-row { display:flex;justify-content:space-between;align-items:center;padding:0.85rem 0.75rem;background:rgba(200,255,0,0.06);border:1px solid rgba(200,255,0,0.15);border-radius:10px;margin-top:0.75rem; }
+.total-row .t-label { font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem; }
+.total-row .t-val { font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:var(--lime); }
+
+.place-btn {
+  width:100%;margin-top:1.25rem;padding:0.9rem;
+  background:var(--lime);color:var(--ink);border:none;border-radius:12px;
+  font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:0.5rem;
+  transition:box-shadow 0.2s,transform 0.2s;
+}
+.place-btn:hover { box-shadow:0 0 22px rgba(200,255,0,0.35);transform:translateY(-1px); }
+
+.security-checks { display:flex;flex-direction:column;gap:0.45rem;margin-top:1rem; }
+.check-row { display:flex;align-items:center;gap:0.5rem;font-size:0.75rem;color:var(--muted2); }
+.check-row i { color:var(--lime);font-size:0.8rem; }
+
+@media(max-width:820px){ .checkout-grid{grid-template-columns:1fr;} .payment-methods{grid-template-columns:1fr 1fr 1fr;} }
+@media(max-width:460px){ .payment-methods{grid-template-columns:1fr 1fr;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-lock-fill"></i> Secure Checkout</div>
+    <h1>Complete Your Order</h1>
+  </div>
+  <a href="{{ url_for('cart') }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back to Cart</a>
+</div>
+
+<div class="checkout-wrap">
+  <form method="POST" action="{{ url_for('place_order') }}">
+    <div class="checkout-grid">
+      <!-- Left column -->
+      <div>
+        <!-- Customer Info -->
+        <div class="section-card">
+          <div class="section-head">
+            <span class="step-badge">1</span> Delivery Information
+          </div>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" placeholder="{{ current_user.username }}" value="{{ current_user.username }}" readonly style="opacity:0.7;cursor:not-allowed;"/>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" placeholder="e.g. Mumbai" required/>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">PIN Code</label>
+              <input type="text" class="form-control" placeholder="e.g. 400001" required/>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:1rem;margin-bottom:0;">
+            <label class="form-label">Address</label>
+            <textarea class="form-control" placeholder="Street address, apartment, etc." rows="2" required></textarea>
+          </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="section-card">
+          <div class="section-head">
+            <span class="step-badge">2</span> Payment Method
+          </div>
+          <div class="payment-methods">
+            <div class="pay-opt">
+              <input type="radio" name="payment_method" id="pm-upi" value="upi" checked/>
+              <label class="pay-label" for="pm-upi">
+                <span class="p-icon">📲</span>
+                <span class="p-name">UPI</span>
+                <span class="p-sub">Instant transfer</span>
+              </label>
+            </div>
+            <div class="pay-opt">
+              <input type="radio" name="payment_method" id="pm-card" value="card"/>
+              <label class="pay-label" for="pm-card">
+                <span class="p-icon">💳</span>
+                <span class="p-name">Card</span>
+                <span class="p-sub">Debit/Credit</span>
+              </label>
+            </div>
+            <div class="pay-opt">
+              <input type="radio" name="payment_method" id="pm-cod" value="cod"/>
+              <label class="pay-label" for="pm-cod">
+                <span class="p-icon">💵</span>
+                <span class="p-name">COD</span>
+                <span class="p-sub">Pay on delivery</span>
+              </label>
+            </div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:0.75rem;text-align:center;">
+            <i class="bi bi-info-circle"></i> This is a simulated payment for project demonstration purposes.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right column: order summary -->
+      <div>
+        <div class="section-card" style="position:sticky;top:80px;margin:0;">
+          <div class="section-head">
+            <span class="step-badge" style="background:var(--electric);color:var(--ink);">3</span> Order Summary
+          </div>
+          {% set emojis = ['🎧','📱','💻','⌚','🖱️','⌨️','📷','🎮'] %}
+          <div class="order-lines">
+            {% for item in items %}
+              <div class="order-line">
+                <span class="ol-emoji">{{ emojis[loop.index0 % emojis|length] }}</span>
+                <span class="ol-name">{{ item.name }}</span>
+                <span class="ol-qty">×{{ item.quantity }}</span>
+                <span class="ol-price">₹{{ "%.2f"|format(item.subtotal) }}</span>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="total-row">
+            <span class="t-label">Total Payable</span>
+            <span class="t-val">₹{{ "%.2f"|format(total) }}</span>
+          </div>
+
+          <button type="submit" class="place-btn">
+            <i class="bi bi-bag-check-fill"></i> Place Order Now
+          </button>
+
+          <div class="security-checks">
+            <div class="check-row"><i class="bi bi-shield-check-fill"></i> 256-bit PBKDF2 encryption</div>
+            <div class="check-row"><i class="bi bi-lock-fill"></i> Parameterized SQL (injection-safe)</div>
+            <div class="check-row"><i class="bi bi-person-lock-fill"></i> Session-protected route</div>
+            <div class="check-row"><i class="bi bi-database-check"></i> 3NF normalized transaction log</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}ShopSphere Secure — Home{% endblock %}
+
+{% block extra_style %}
+.hero {
+  min-height: calc(100vh - 61px);
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center; gap: 4rem;
+  padding: 4rem 5vw 6rem;
+  position: relative; overflow: hidden;
+}
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.16; animation: drift 12s ease-in-out infinite alternate; }
+.orb-1 { width:500px;height:500px;background:var(--violet);top:-100px;right:0;animation-duration:14s; }
+.orb-2 { width:350px;height:350px;background:var(--coral);bottom:0;right:15%;animation-duration:10s;animation-delay:-3s; }
+.orb-3 { width:280px;height:280px;background:var(--electric);top:30%;left:-60px;animation-duration:16s;animation-delay:-6s; }
+@keyframes drift { from{transform:translate(0,0) scale(1);}to{transform:translate(30px,20px) scale(1.1);} }
+.hero-content { position:relative;z-index:2; }
+.hero-badge {
+  display:inline-flex;align-items:center;gap:0.5rem;
+  padding:0.4rem 0.9rem;border:1px solid rgba(200,255,0,0.3);border-radius:100px;
+  font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--lime);background:rgba(200,255,0,0.07);margin-bottom:1.75rem;
+  animation:fadeUp 0.7s 0.2s ease both;
+}
+h1.hero-title {
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(2.6rem,5vw,4.5rem);line-height:1.02;letter-spacing:-0.04em;
+  margin-bottom:1.25rem;animation:fadeUp 0.7s 0.35s ease both;
+}
+.hero-title .grad {
+  background:linear-gradient(90deg,var(--lime) 0%,var(--electric) 55%,var(--coral) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-desc { font-size:1rem;line-height:1.75;color:var(--muted2);max-width:460px;margin-bottom:2rem;animation:fadeUp 0.7s 0.5s ease both; }
+.hero-btns { display:flex;gap:0.75rem;flex-wrap:wrap;animation:fadeUp 0.7s 0.65s ease both; }
+.btn-hero {
+  padding:0.8rem 1.8rem;border-radius:100px;
+  font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;
+  text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;
+  transition:all 0.2s;cursor:pointer;border:none;
+}
+.btn-hero-lime { background:var(--lime);color:var(--ink); }
+.btn-hero-lime:hover { transform:translateY(-2px);box-shadow:0 12px 36px rgba(200,255,0,0.3);color:var(--ink); }
+.btn-hero-ghost { background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.18); }
+.btn-hero-ghost:hover { border-color:var(--electric);background:rgba(0,194,255,0.06); }
+.hero-stats { display:flex;gap:2.5rem;margin-top:3rem;animation:fadeUp 0.7s 0.8s ease both; }
+.stat { display:flex;flex-direction:column;gap:0.2rem; }
+.stat-n { font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;letter-spacing:-0.03em; }
+.stat-l { font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);} }
+
+.hero-visual { position:relative;z-index:2;animation:fadeUp 0.9s 0.4s ease both; }
+.mockup {
+  background:var(--ink2);border:1px solid rgba(255,255,255,0.08);border-radius:20px;
+  overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.04);
+}
+.mockup-bar {
+  background:var(--ink3);padding:0.85rem 1rem;
+  display:flex;align-items:center;gap:0.4rem;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.dot-r{width:9px;height:9px;border-radius:50%;background:#FF5F57;}
+.dot-y{width:9px;height:9px;border-radius:50%;background:#FFBD2E;}
+.dot-g{width:9px;height:9px;border-radius:50%;background:#28CA41;}
+.url {flex:1;background:rgba(255,255,255,0.05);border-radius:5px;padding:0.25rem 0.7rem;font-size:0.7rem;color:var(--muted);margin-left:0.35rem;}
+.mockup-body { padding:1rem; }
+.mock-grid { display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem; }
+.mock-card { background:var(--ink3);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.04); }
+.mock-img { height:80px;display:flex;align-items:center;justify-content:center;font-size:2rem; }
+.mc1{background:linear-gradient(135deg,#7B2FFF22,#7B2FFF44);}
+.mc2{background:linear-gradient(135deg,#FF4D6D22,#FF4D6D44);}
+.mc3{background:linear-gradient(135deg,#00C2FF22,#00C2FF44);}
+.mc4{background:linear-gradient(135deg,#C8FF0022,#C8FF0044);}
+.mock-info { padding:0.5rem 0.65rem 0.6rem; }
+.mock-name { font-size:0.68rem;font-weight:600;margin-bottom:0.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.mock-price { font-size:0.72rem;color:var(--lime);font-weight:700; }
+.mock-btn {
+  width:100%;padding:0.5rem;
+  background:linear-gradient(90deg,var(--lime),var(--electric));
+  border:none;border-radius:8px;font-size:0.78rem;font-weight:700;color:var(--ink);cursor:pointer;
+}
+.sec-strip {
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(200,255,0,0.06);border:1px solid rgba(200,255,0,0.13);
+  border-radius:8px;padding:0.55rem 0.8rem;margin-top:0.6rem;
+}
+.sec-strip span { font-size:0.68rem;color:var(--lime);font-weight:600; }
+
+.float-tag {
+  position:absolute;background:var(--ink2);border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;padding:0.5rem 0.8rem;font-size:0.72rem;font-weight:600;
+  white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  display:flex;align-items:center;gap:0.35rem;
+  animation:floatY 4s ease-in-out infinite;
+}
+@keyframes floatY { 0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);} }
+.ft1{top:-14px;right:-18px;border-color:rgba(200,255,0,0.25);animation-delay:0s;}
+.ft2{bottom:30px;left:-26px;border-color:rgba(255,77,109,0.25);animation-delay:1.5s;}
+.ft3{top:45%;right:-30px;border-color:rgba(0,194,255,0.25);animation-delay:0.75s;}
+
+.marquee-wrap { overflow:hidden;background:var(--ink2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0.9rem 0; }
+.marquee-track { display:flex;gap:2.5rem;animation:marquee 22s linear infinite;width:max-content; }
+@keyframes marquee { from{transform:translateX(0);}to{transform:translateX(-50%);} }
+.m-item { display:flex;align-items:center;gap:0.5rem;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap; }
+.m-sep { color:var(--lime); }
+
+.features-section { padding:5rem 5vw; }
+.features-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem; }
+.feat-card {
+  background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:1.75rem;
+  transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;position:relative;overflow:hidden;
+}
+.feat-card:hover { transform:translateY(-4px); }
+.feat-card::before { content:'';position:absolute;inset:0;border-radius:16px;opacity:0;transition:opacity 0.3s; }
+.fc-l::before{background:radial-gradient(circle at top left,rgba(200,255,0,0.07),transparent 60%);}
+.fc-c::before{background:radial-gradient(circle at top left,rgba(255,77,109,0.07),transparent 60%);}
+.fc-e::before{background:radial-gradient(circle at top left,rgba(0,194,255,0.07),transparent 60%);}
+.fc-v::before{background:radial-gradient(circle at top left,rgba(123,47,255,0.07),transparent 60%);}
+.feat-card:hover::before{opacity:1;}
+.fc-l:hover{border-color:rgba(200,255,0,0.25);}
+.fc-c:hover{border-color:rgba(255,77,109,0.25);}
+.fc-e:hover{border-color:rgba(0,194,255,0.25);}
+.fc-v:hover{border-color:rgba(123,47,255,0.25);}
+.feat-icon { width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;margin-bottom:1rem; }
+.fi-l{background:rgba(200,255,0,0.12);}
+.fi-c{background:rgba(255,77,109,0.12);}
+.fi-e{background:rgba(0,194,255,0.12);}
+.fi-v{background:rgba(123,47,255,0.12);}
+.feat-title { font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.5rem; }
+.feat-desc { font-size:0.84rem;color:var(--muted2);line-height:1.65; }
+
+.cta-section { padding:6rem 5vw;text-align:center;position:relative;overflow:hidden; }
+.cta-section::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(123,47,255,0.12) 0%,transparent 70%); }
+.cta-section h2 { font-family:'Syne',sans-serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:800;letter-spacing:-0.04em;margin-bottom:1rem;position:relative; }
+.cta-section p { color:var(--muted2);max-width:440px;margin:0 auto 2rem;line-height:1.7;position:relative; }
+.cta-btns { display:flex;gap:0.75rem;justify-content:center;position:relative; }
+
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;min-height:auto;padding-top:3rem;}
+  .hero-visual{display:none;}
+  .features-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:600px){
+  .features-grid{grid-template-columns:1fr;}
+  .hero-stats{gap:1.5rem;}
+}
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">🛡️ &nbsp;Enterprise-grade security · Python + Flask</div>
+    <h1 class="hero-title">
+      Shop Without<br>
+      <span class="grad">Fear. Ever.</span>
+    </h1>
+    <p class="hero-desc">
+      ShopSphere Secure combines lightning-fast e-commerce with military-grade cybersecurity — brute-force protection, SQL injection prevention, and role-based access. Shop smarter. Sleep better.
+    </p>
+    <div class="hero-btns">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('products') }}" class="btn-hero btn-hero-lime"><i class="bi bi-bag-fill"></i> Browse Products</a>
+        <a href="{{ url_for('order_history') }}" class="btn-hero btn-hero-ghost">My Orders</a>
+      {% else %}
+        <a href="{{ url_for('register') }}" class="btn-hero btn-hero-lime"><i class="bi bi-person-plus-fill"></i> Get Started Free</a>
+        <a href="{{ url_for('login') }}" class="btn-hero btn-hero-ghost">Log In</a>
+      {% endif %}
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-n text-lime">5</span><span class="stat-l">Security Layers</span></div>
+      <div class="stat"><span class="stat-n text-coral">30min</span><span class="stat-l">Auto Lock</span></div>
+      <div class="stat"><span class="stat-n text-elec">3NF</span><span class="stat-l">DB Normalized</span></div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div style="position:relative;">
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+          <div class="url">shopsphere.secure/products</div>
+          <span style="font-size:0.68rem;color:var(--lime);">🔒 SSL</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mock-grid">
+            <div class="mock-card"><div class="mock-img mc1">🎧</div><div class="mock-info"><div class="mock-name">Pro Headphones</div><div class="mock-price">₹2,499</div></div></div>
+            <div class="mock-card"><div class="mock-img mc2">📱</div><div class="mock-info"><div class="mock-name">Smart Phone X</div><div class="mock-price">₹18,999</div></div></div>
+            <div class="mock-card"><div class="mock-img mc3">💻</div><div class="mock-info"><div class="mock-name">UltraBook Pro</div><div class="mock-price">₹54,999</div></div></div>
+            <div class="mock-card"><div class="mock-img mc4">⌚</div><div class="mock-info"><div class="mock-name">Smart Watch</div><div class="mock-price">₹8,249</div></div></div>
+          </div>
+          <button class="mock-btn">🛒 Secured Checkout</button>
+          <div class="sec-strip"><span>🛡️</span><span>PBKDF2 Encrypted · Session Protected</span><span>✓</span></div>
+        </div>
+      </div>
+      <div class="float-tag ft1">🔒 <span style="color:var(--lime)">Brute-Force Safe</span></div>
+      <div class="float-tag ft2">✅ <span style="color:#ff8fa3;">SQL Injection Safe</span></div>
+      <div class="float-tag ft3">⚡ <span style="color:var(--electric)">Live Inventory</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    {% for item in ["🛡️ Brute-Force Protection","🔐 PBKDF2 Hashing","📊 3NF Database","🧩 OOP Architecture","🛒 Smart Cart","⚙️ Role-Based Access","💳 UPI & Card Pay","📦 Order Tracking","🛡️ Brute-Force Protection","🔐 PBKDF2 Hashing","📊 3NF Database","🧩 OOP Architecture","🛒 Smart Cart","⚙️ Role-Based Access","💳 UPI & Card Pay","📦 Order Tracking"] %}
+      <span class="m-item">{{ item }}</span><span class="m-sep">◆</span>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--lime);margin-bottom:0.5rem;">
+    <span style="width:18px;height:1.5px;background:var(--lime);display:block;"></span> What We Offer
+  </div>
+  <h2 class="syne" style="font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;max-width:520px;">Features Built to Impress &amp; Protect</h2>
+
+  <div class="features-grid">
+    <div class="feat-card fc-l"><div class="feat-icon fi-l">🛒</div><div class="feat-title">Smart Cart & Checkout</div><p class="feat-desc">Multi-item cart with quantity control, real-time totals, and stock-validated secure checkout backed by MySQL.</p></div>
+    <div class="feat-card fc-c"><div class="feat-icon fi-c">🔐</div><div class="feat-title">PBKDF2 Password Security</div><p class="feat-desc">Every password is hashed with PBKDF2 + random salt — even a full DB breach exposes nothing usable.</p></div>
+    <div class="feat-card fc-e"><div class="feat-icon fi-e">🔎</div><div class="feat-title">Search & Filter Products</div><p class="feat-desc">Real-time search by name or description using parameterized SQL — fast, safe, injection-proof at every keystroke.</p></div>
+    <div class="feat-card fc-v"><div class="feat-icon fi-v">🛡️</div><div class="feat-title">Brute-Force Protection</div><p class="feat-desc">Accounts auto-lock for 30 minutes after 5 failed login attempts in any 10-minute window. Every attempt is logged.</p></div>
+    <div class="feat-card fc-l"><div class="feat-icon fi-l">📦</div><div class="feat-title">Order Tracking</div><p class="feat-desc">Track every order from placed → paid → shipped → delivered. Full purchase history in your personal dashboard.</p></div>
+    <div class="feat-card fc-c"><div class="feat-icon fi-c">⚙️</div><div class="feat-title">Admin Control Panel</div><p class="feat-desc">Role-based admin access for product CRUD, inventory management, and unlocking brute-force locked accounts.</p></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to Shop<br><span class="text-lime">Without Limits?</span></h2>
+  <p>Join ShopSphere Secure — where every transaction is protected by design, from the first click to delivery.</p>
+  <div class="cta-btns">
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('products') }}" class="btn-hero btn-hero-lime"><i class="bi bi-bag-fill"></i> Shop Now</a>
+    {% else %}
+      <a href="{{ url_for('register') }}" class="btn-hero btn-hero-lime"><i class="bi bi-person-plus-fill"></i> Create Free Account</a>
+      <a href="{{ url_for('login') }}" class="btn-hero btn-hero-ghost">Log In</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

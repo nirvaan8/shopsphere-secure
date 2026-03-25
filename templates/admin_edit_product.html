@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Edit Product #{{ product.product_id }} — Admin{% endblock %}
+
+{% block extra_style %}
+.form-wrap { padding: 2rem 5vw 4rem; }
+.form-card { background:var(--ink2);border:1px solid var(--border);border-radius:18px;padding:2rem;max-width:620px; }
+.form-section-title { font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border); }
+.two-col { display:grid;grid-template-columns:1fr 1fr;gap:1rem; }
+.form-hint { font-size:0.72rem;color:var(--muted);margin-top:0.25rem; }
+.prod-badge { display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.8rem;background:rgba(0,194,255,0.1);border:1px solid rgba(0,194,255,0.2);border-radius:100px;color:var(--electric);font-size:0.72rem;font-weight:700; }
+@media(max-width:500px){ .two-col{grid-template-columns:1fr;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-shield-fill"></i> Admin Panel</div>
+    <h1>Edit Product</h1>
+  </div>
+  <a href="{{ url_for('admin_products') }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back to Products</a>
+</div>
+
+<div class="form-wrap">
+  <div class="form-card">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+      <span class="prod-badge"><i class="bi bi-box-seam"></i> Product #{{ product.product_id }}</span>
+      <span style="font-size:0.8rem;color:var(--muted2);">Editing: <strong style="color:var(--white);">{{ product.name }}</strong></span>
+    </div>
+
+    <p class="form-section-title">Product Details</p>
+    <form method="POST" action="{{ url_for('admin_edit_product', product_id=product.product_id) }}">
+      <div class="form-group">
+        <label class="form-label">Product Name *</label>
+        <input name="name" type="text" class="form-control" value="{{ product.name }}" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="3">{{ product.description or '' }}</textarea>
+        <div class="form-hint">Optional but helps customers find products via search.</div>
+      </div>
+
+      <p class="form-section-title" style="margin-top:1.5rem;">Pricing & Inventory</p>
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label">Price (₹) *</label>
+          <input name="price" type="number" step="0.01" min="0.01" class="form-control" value="{{ product.price }}" required/>
+          <div class="form-hint">Must be greater than ₹0</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock Quantity *</label>
+          <input name="stock" type="number" min="0" class="form-control" value="{{ product.stock }}" required/>
+          <div class="form-hint">Current: {{ product.stock }} units</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:0.75rem;">
+        <button type="submit" class="btn btn-elec" style="padding:0.7rem 1.5rem;font-size:0.9rem;">
+          <i class="bi bi-check-circle-fill"></i> Save Changes
+        </button>
+        <a href="{{ url_for('admin_products') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

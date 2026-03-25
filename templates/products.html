@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block title %}Products — ShopSphere Secure{% endblock %}
+
+{% block extra_style %}
+.products-wrap { padding: 2rem 5vw 4rem; }
+.search-bar-row { display:flex;gap:0.75rem;align-items:center;margin-bottom:2rem;flex-wrap:wrap; }
+.search-wrap { position:relative;flex:1;min-width:220px; }
+.search-wrap i { position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.9rem;pointer-events:none; }
+.search-input {
+  width:100%;padding:0.7rem 1rem 0.7rem 2.6rem;
+  background:var(--ink2);border:1px solid var(--border);border-radius:12px;
+  color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.search-input:focus { border-color:rgba(200,255,0,0.4);box-shadow:0 0 0 3px rgba(200,255,0,0.07); }
+.search-input::placeholder { color:var(--muted); }
+.search-btn {
+  padding:0.7rem 1.4rem;background:var(--lime);color:var(--ink);border:none;border-radius:12px;
+  font-family:'Syne',sans-serif;font-size:0.875rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:0.4rem;transition:box-shadow 0.2s,transform 0.2s;white-space:nowrap;
+}
+.search-btn:hover { box-shadow:0 0 16px rgba(200,255,0,0.3);transform:translateY(-1px); }
+.results-info { font-size:0.82rem;color:var(--muted2);margin-bottom:1.5rem; }
+.results-info strong { color:var(--white); }
+.products-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.1rem; }
+
+.product-card {
+  background:var(--ink2);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;
+  display:flex;flex-direction:column;
+}
+.product-card:hover { transform:translateY(-5px);border-color:rgba(200,255,0,0.2);box-shadow:0 16px 50px rgba(0,0,0,0.3); }
+
+.prod-img-area {
+  height:140px;display:flex;align-items:center;justify-content:center;
+  position:relative;background:var(--ink3);overflow:hidden;
+}
+.prod-glow {
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 60%, var(--glow-color,rgba(200,255,0,0.13)), transparent 68%);
+  transition:opacity 0.3s;
+}
+.product-card:hover .prod-glow { opacity:1.8; }
+.prod-grid-lines {
+  position:absolute;inset:0;opacity:0.055;
+  background-image:linear-gradient(rgba(255,255,255,0.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.7) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+.prod-icon-wrap {
+  position:relative;z-index:2;display:flex;align-items:center;justify-content:center;
+  animation:iconFloat 3.5s ease-in-out infinite;
+}
+@keyframes iconFloat { 0%,100%{transform:translateY(0px);}50%{transform:translateY(-7px);} }
+.product-card:hover .prod-icon-wrap svg { filter:drop-shadow(0 0 14px var(--icon-shadow,rgba(200,255,0,0.7))); }
+
+.stock-pill {
+  position:absolute;top:0.6rem;right:0.6rem;
+  padding:0.2rem 0.6rem;border-radius:100px;font-size:0.65rem;font-weight:700;letter-spacing:0.04em;
+}
+.in-stock  { background:rgba(40,202,65,0.15);color:#4ADE80;border:1px solid rgba(40,202,65,0.25); }
+.low-stock { background:rgba(255,190,0,0.15);color:#FFD166;border:1px solid rgba(255,190,0,0.25); }
+.out-stock { background:rgba(255,77,109,0.15);color:#FF8FA3;border:1px solid rgba(255,77,109,0.25); }
+
+.prod-body { padding:1.1rem 1.25rem;flex:1;display:flex;flex-direction:column; }
+.prod-name { font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.35rem;line-height:1.3; }
+.prod-desc { font-size:0.8rem;color:var(--muted2);line-height:1.55;flex:1;margin-bottom:1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.prod-price { font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--lime);letter-spacing:-0.02em;margin-bottom:1rem; }
+.prod-price small { font-size:0.75rem;font-weight:400;color:var(--muted);font-family:'DM Sans',sans-serif; }
+
+.add-form { display:flex;gap:0.5rem;align-items:center; }
+.qty-input {
+  width:64px;padding:0.5rem 0.6rem;background:var(--ink3);border:1px solid var(--border);
+  border-radius:8px;color:var(--white);font-size:0.875rem;text-align:center;outline:none;transition:border-color 0.2s;
+}
+.qty-input:focus { border-color:rgba(200,255,0,0.4); }
+.add-btn {
+  flex:1;padding:0.55rem 0.75rem;background:var(--lime);color:var(--ink);
+  border:none;border-radius:8px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;
+  cursor:pointer;transition:box-shadow 0.2s,transform 0.2s;display:flex;align-items:center;justify-content:center;gap:0.35rem;
+}
+.add-btn:hover { box-shadow:0 0 14px rgba(200,255,0,0.3);transform:translateY(-1px); }
+.add-btn:disabled { background:var(--ink3);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none; }
+
+@media(max-width:600px){ .products-grid{grid-template-columns:1fr 1fr;} }
+@media(max-width:420px){ .products-grid{grid-template-columns:1fr;} }
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="label"><i class="bi bi-bag"></i> Store</div>
+    <h1>All Products</h1>
+  </div>
+  <a href="{{ url_for('cart') }}" class="btn btn-ghost">
+    <i class="bi bi-cart3"></i> Cart
+    {% if cart_count > 0 %}<span style="background:var(--coral);color:white;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;">{{ cart_count }}</span>{% endif %}
+  </a>
+</div>
+
+<div class="products-wrap">
+  <form method="GET" action="{{ url_for('products') }}">
+    <div class="search-bar-row">
+      <div class="search-wrap">
+        <i class="bi bi-search"></i>
+        <input class="search-input" type="text" name="search" placeholder="Search products by name or description…" value="{{ keyword or '' }}"/>
+      </div>
+      <button type="submit" class="search-btn"><i class="bi bi-search"></i> Search</button>
+      {% if keyword %}<a href="{{ url_for('products') }}" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+    </div>
+  </form>
+
+  {% if keyword %}
+    <p class="results-info">Showing results for <strong>"{{ keyword }}"</strong> — {{ products|length }} product{{ 's' if products|length != 1 }} found</p>
+  {% endif %}
+
+  {# ══════════════════════════════════════════════════
+     Reads product NAME → picks correct SVG icon + colors
+     ══════════════════════════════════════════════════ #}
+  {% macro product_icon(name, loop_i) %}
+    {%- set n = name | lower -%}
+    {%- if 'mouse' in n -%}
+      {# MOUSE - oval body + scroll wheel + signal lines #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="18" y="14" width="28" height="38" rx="14" stroke="#C8FF00" stroke-width="2.5" fill="none"/>
+        <line x1="32" y1="14" x2="32" y2="37" stroke="#C8FF00" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        <rect x="27" y="20" width="10" height="9" rx="4.5" fill="#C8FF00" opacity="0.75"/>
+        <circle cx="32" cy="44" r="2.5" fill="#C8FF00" opacity="0.45"/>
+        <line x1="21" y1="7" x2="21" y2="14" stroke="#C8FF00" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+        <line x1="32" y1="5" x2="32" y2="14" stroke="#C8FF00" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+        <line x1="43" y1="7" x2="43" y2="14" stroke="#C8FF00" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(200,255,0,0.16);--icon-shadow:rgba(200,255,0,0.65);}</style>
+    {%- elif 'keyboard' in n or 'mechanical' in n -%}
+      {# KEYBOARD - base + rows of keys + RGB stems #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="18" width="54" height="28" rx="5" stroke="#FF4D6D" stroke-width="2.5" fill="none"/>
+        <rect x="11" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.65"/>
+        <rect x="22" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.65"/>
+        <rect x="33" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.65"/>
+        <rect x="44" y="24" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.65"/>
+        <rect x="11" y="34" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.35"/>
+        <rect x="22" y="34" width="18" height="6" rx="2" fill="#FF4D6D" opacity="0.35"/>
+        <rect x="44" y="34" width="7" height="6" rx="2" fill="#FF4D6D" opacity="0.35"/>
+        <rect x="21" y="10" width="5" height="8" rx="2.5" fill="#FF4D6D" opacity="0.35" stroke="#FF4D6D" stroke-width="1"/>
+        <rect x="30" y="8" width="5" height="10" rx="2.5" fill="#FF4D6D" opacity="0.6" stroke="#FF4D6D" stroke-width="1"/>
+        <rect x="39" y="10" width="5" height="8" rx="2.5" fill="#FF4D6D" opacity="0.35" stroke="#FF4D6D" stroke-width="1"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(255,77,109,0.16);--icon-shadow:rgba(255,77,109,0.65);}</style>
+    {%- elif 'charger' in n or 'charging' in n or 'adapter' in n -%}
+      {# CHARGER - brick body + plug pins + lightning bolt #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="8" width="32" height="30" rx="7" stroke="#00C2FF" stroke-width="2.5" fill="none"/>
+        <rect x="24" y="36" width="16" height="14" rx="2" stroke="#00C2FF" stroke-width="2" fill="none"/>
+        <line x1="28" y1="50" x2="28" y2="58" stroke="#00C2FF" stroke-width="3" stroke-linecap="round"/>
+        <line x1="36" y1="50" x2="36" y2="58" stroke="#00C2FF" stroke-width="3" stroke-linecap="round"/>
+        <path d="M36 16 L29 26 H35 L28 36" stroke="#00C2FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(0,194,255,0.16);--icon-shadow:rgba(0,194,255,0.65);}</style>
+    {%- elif 'earbud' in n or 'earphone' in n or 'tws' in n or 'headphone' in n or 'headset' in n or 'bluetooth ear' in n or 'noise-cancell' in n or 'wireless ear' in n -%}
+      {# HEADPHONES - arch + ear cups #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 35 C12 17 52 17 52 35" stroke="#7B2FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <rect x="6" y="33" width="12" height="18" rx="6" fill="#7B2FFF" opacity="0.85"/>
+        <rect x="46" y="33" width="12" height="18" rx="6" fill="#7B2FFF" opacity="0.85"/>
+        <line x1="9" y1="42" x2="15" y2="42" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+        <line x1="49" y1="42" x2="55" y2="42" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+        <line x1="32" y1="17" x2="32" y2="9" stroke="#7B2FFF" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(123,47,255,0.16);--icon-shadow:rgba(123,47,255,0.65);}</style>
+    {%- elif 'laptop' in n or 'notebook' in n or 'ultrabook' in n or 'macbook' in n -%}
+      {# LAPTOP - screen + keyboard base #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="12" width="48" height="30" rx="4" stroke="#C8FF00" stroke-width="2.5" fill="none"/>
+        <rect x="14" y="18" width="36" height="18" rx="2" fill="#C8FF00" opacity="0.1"/>
+        <line x1="2" y1="42" x2="62" y2="42" stroke="#C8FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="20" y="44" width="24" height="5" rx="2.5" fill="#C8FF00" opacity="0.3"/>
+        <line x1="24" y1="27" x2="40" y2="27" stroke="#C8FF00" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+        <line x1="24" y1="22" x2="34" y2="22" stroke="#C8FF00" stroke-width="1.5" opacity="0.3" stroke-linecap="round"/>
+        <circle cx="32" cy="27" r="3" fill="#C8FF00" opacity="0.4"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(200,255,0,0.16);--icon-shadow:rgba(200,255,0,0.65);}</style>
+    {%- elif 'stand' in n or 'cooling' in n -%}
+      {# LAPTOP STAND / COOLING PAD - stacked bars #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="14" width="48" height="9" rx="4.5" stroke="#FF4D6D" stroke-width="2.5" fill="none"/>
+        <rect x="8" y="27" width="48" height="9" rx="4.5" stroke="#FF4D6D" stroke-width="2.5" fill="none" opacity="0.7"/>
+        <rect x="8" y="40" width="48" height="9" rx="4.5" stroke="#FF4D6D" stroke-width="2.5" fill="none" opacity="0.4"/>
+        <line x1="20" y1="23" x2="20" y2="27" stroke="#FF4D6D" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="32" y1="23" x2="32" y2="27" stroke="#FF4D6D" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="44" y1="23" x2="44" y2="27" stroke="#FF4D6D" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="16" y1="57" x2="48" y2="57" stroke="#FF4D6D" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+        <line x1="32" y1="49" x2="32" y2="57" stroke="#FF4D6D" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(255,77,109,0.16);--icon-shadow:rgba(255,77,109,0.65);}</style>
+    {%- elif 'power bank' in n or 'powerbank' in n or 'power-bank' in n or ('portable' in n and ('battery' in n or 'power' in n)) -%}
+      {# POWER BANK - horizontal pill + charge indicator #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7" y="18" width="48" height="26" rx="6" stroke="#C8FF00" stroke-width="2.5" fill="none"/>
+        <rect x="13" y="24" width="13" height="14" rx="2" fill="#C8FF00" opacity="0.7"/>
+        <rect x="29" y="24" width="9" height="14" rx="2" fill="#C8FF00" opacity="0.35"/>
+        <rect x="55" y="25" width="5" height="12" rx="2.5" fill="#C8FF00" opacity="0.5"/>
+        <line x1="22" y1="10" x2="22" y2="18" stroke="#C8FF00" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        <line x1="38" y1="10" x2="38" y2="18" stroke="#C8FF00" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(200,255,0,0.16);--icon-shadow:rgba(200,255,0,0.65);}</style>
+    {%- elif 'phone' in n or 'mobile' in n or 'smartphone' in n -%}
+      {# PHONE - tall rect + home indicator + camera dot #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="4" width="32" height="56" rx="7" stroke="#00C2FF" stroke-width="2.5" fill="none"/>
+        <line x1="24" y1="8" x2="40" y2="8" stroke="#00C2FF" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="32" cy="54" r="3" fill="#00C2FF" opacity="0.55"/>
+        <rect x="22" y="15" width="20" height="28" rx="2" fill="#00C2FF" opacity="0.09"/>
+        <line x1="22" y1="20" x2="42" y2="20" stroke="#00C2FF" stroke-width="1.5" opacity="0.35" stroke-linecap="round"/>
+        <line x1="22" y1="26" x2="36" y2="26" stroke="#00C2FF" stroke-width="1.5" opacity="0.2" stroke-linecap="round"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(0,194,255,0.16);--icon-shadow:rgba(0,194,255,0.65);}</style>
+    {%- elif 'watch' in n or 'smartwatch' in n or 'wrist' in n -%}
+      {# SMARTWATCH - circle face + band + clock hands #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="16" stroke="#7B2FFF" stroke-width="2.5" fill="none"/>
+        <circle cx="32" cy="32" r="11" stroke="#7B2FFF" stroke-width="1.5" fill="none" opacity="0.3"/>
+        <rect x="26" y="8" width="12" height="10" rx="3" stroke="#7B2FFF" stroke-width="2" fill="none"/>
+        <rect x="26" y="46" width="12" height="10" rx="3" stroke="#7B2FFF" stroke-width="2" fill="none"/>
+        <line x1="32" y1="22" x2="32" y2="32" stroke="#7B2FFF" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="32" y1="32" x2="40" y2="37" stroke="#7B2FFF" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="2.5" fill="#7B2FFF"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(123,47,255,0.16);--icon-shadow:rgba(123,47,255,0.65);}</style>
+    {%- else -%}
+      {# GENERIC - circuit/device icon #}
+      <svg width="66" height="66" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="44" height="44" rx="9" stroke="#00C2FF" stroke-width="2.5" fill="none"/>
+        <circle cx="32" cy="32" r="11" stroke="#00C2FF" stroke-width="2" fill="none" opacity="0.45"/>
+        <line x1="32" y1="21" x2="32" y2="43" stroke="#00C2FF" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
+        <line x1="21" y1="32" x2="43" y2="32" stroke="#00C2FF" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
+        <circle cx="32" cy="32" r="3" fill="#00C2FF" opacity="0.5"/>
+      </svg>
+      <style>.pc-{{loop_i}}{--glow-color:rgba(0,194,255,0.16);--icon-shadow:rgba(0,194,255,0.65);}</style>
+    {%- endif -%}
+  {% endmacro %}
+
+  {% set float_delays = ['0s','0.35s','0.7s','1.05s','0.2s','0.55s','0.9s','0.15s','0.5s','0.85s','0.3s','0.65s'] %}
+
+  {% if products %}
+    <div class="products-grid">
+      {% for p in products %}
+        <div class="product-card pc-{{ loop.index }}">
+          <div class="prod-img-area">
+            <div class="prod-grid-lines"></div>
+            <div class="prod-glow"></div>
+            <div class="prod-icon-wrap" style="animation-delay:{{ float_delays[loop.index0 % 12] }}">
+              {{ product_icon(p.name, loop.index) }}
+            </div>
+            {% if p.stock <= 0 %}
+              <span class="stock-pill out-stock">Out of Stock</span>
+            {% elif p.stock <= 5 %}
+              <span class="stock-pill low-stock">Only {{ p.stock }} left</span>
+            {% else %}
+              <span class="stock-pill in-stock">In Stock</span>
+            {% endif %}
+          </div>
+          <div class="prod-body">
+            <div class="prod-name">{{ p.name }}</div>
+            <div class="prod-desc">{{ p.description or 'No description available.' }}</div>
+            <div class="prod-price">₹{{ "%.2f"|format(p.price) }} <small>/ unit</small></div>
+            <form method="POST" action="{{ url_for('add_to_cart', product_id=p.product_id) }}" class="add-form">
+              <input class="qty-input" type="number" name="quantity" value="1" min="1" max="{{ p.stock }}" {% if p.stock <= 0 %}disabled{% endif %}/>
+              <button type="submit" class="add-btn" {% if p.stock <= 0 %}disabled{% endif %}>
+                <i class="bi bi-cart-plus-fill"></i>
+                {% if p.stock <= 0 %}Unavailable{% else %}Add to Cart{% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <div style="font-size:3rem;opacity:0.35;margin-bottom:1rem;">🔍</div>
+      <h3>No products found</h3>
+      <p>{% if keyword %}Try a different search term or browse all products.{% else %}No products are available right now. Check back soon!{% endif %}</p>
+      {% if keyword %}
+        <a href="{{ url_for('products') }}" class="btn btn-lime">Browse All Products</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
